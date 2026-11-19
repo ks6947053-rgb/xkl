@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAUÃ // BATCAVERNA ENGENHARIA UFSC 2027</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fontes Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- KaTeX (Renderização Matemática) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        hud: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        bat: {
+                            950: '#04070f',
+                            900: '#090f1d',
+                            850: '#0e172a',
+                            800: '#16223c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #04070f; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+
+        .cyber-grid {
+            background-image:
+                linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        .hud-border {
+            position: relative;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            box-shadow: 0 0 24px rgba(2, 132, 199, 0.08), inset 0 0 18px rgba(15, 23, 42, 0.65);
+        }
+
+        .hud-glow-gold {
+            box-shadow: 0 0 28px rgba(245, 158, 11, 0.18), inset 0 0 15px rgba(245, 158, 11, 0.06);
+        }
+
+        .module-view {
+            animation: hudEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes hudEnter {
+            from { opacity: 0; transform: translateY(10px) scale(0.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes pulseLightning {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6)); }
+            50% { filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.95)); }
+        }
+        .flash-aura { animation: pulseLightning 2.4s infinite ease-in-out; }
+
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+
+        /* Range Slider Futurista */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #38bdf8;
+            border: 2px solid #04070f;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #1e293b;
+            border-radius: 999px;
+        }
+
+        /* Holographic Card Shimmer */
+        .holo-card {
+            background: linear-gradient(135deg, rgba(14,23,42,0.95) 0%, rgba(15,23,42,0.85) 50%, rgba(30,41,59,0.95) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .holo-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
+            transform: rotate(25deg);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-bat-950 text-slate-100 font-sans antialiased cyber-grid selection:bg-sky-400 selection:text-bat-950">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm"></div>
+
+    <!-- Input Oculto Backup JSON -->
+    <input type="file" id="import-json-input" accept=".json" class="hidden" onchange="handleImportJSON(event)" />
+
+    <div class="min-h-screen flex flex-col lg:flex-row">
+
+        <!-- ============================================================== -->
+        <!-- SIDEBAR TÁTICA: WAYNETECH // KAUÃ HUD                           -->
+        <!-- ============================================================== -->
+        <aside class="lg:w-76 bg-bat-900/95 backdrop-blur-xl border-b lg:border-b-0 lg:border-r border-sky-500/20 flex flex-col justify-between sticky top-0 z-30 lg:h-screen shrink-0">
+            <div>
+                <!-- Logo & Identidade Kauã -->
+                <div class="p-4 lg:p-5 border-b border-sky-500/20 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-400 via-blue-600 to-amber-500 p-0.5 shadow-lg shadow-sky-500/25">
+                            <div class="w-full h-full bg-bat-950 rounded-[10px] flex items-center justify-center font-hud font-black text-sky-400 text-base">
+                                K10
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="font-hud font-extrabold text-xs lg:text-sm tracking-wider text-white">BATCAVERNA // KAUÃ</h1>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold">ENG. PRODUÇÃO UFSC</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navegação dos 7 Módulos -->
+                <nav class="p-2.5 lg:p-3 flex lg:flex-col gap-1 overflow-x-auto">
+                    <button onclick="switchModule('central')" id="nav-central" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-bold transition whitespace-nowrap bg-sky-500/15 text-sky-400 border border-sky-500/35">
+                        <i data-lucide="shield" class="w-4 h-4 shrink-0"></i>
+                        <span>1. Central Tática & Radar</span>
+                    </button>
+                    <button onclick="switchModule('galeria')" id="nav-galeria" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-medium text-slate-400 hover:bg-bat-800/80 transition whitespace-nowrap">
+                        <i data-lucide="image" class="w-4 h-4 shrink-0 text-amber-400"></i>
+                        <span>2. Galeria & Cards Kauã</span>
+                        <span id="badge-card-rarity" class="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold">PRATA</span>
+                    </button>
+                    <button onclick="switchModule('edital')" id="nav-edital" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-medium text-slate-400 hover:bg-bat-800/80 transition whitespace-nowrap">
+                        <i data-lucide="book-open-check" class="w-4 h-4 shrink-0"></i>
+                        <span>3. Edital 2027 (Todas Mat.)</span>
+                        <span id="badge-edital-count" class="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-bat-800 text-slate-300">0/30</span>
+                    </button>
+                    <button onclick="switchModule('arena')" id="nav-arena" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-medium text-slate-400 hover:bg-bat-800/80 transition whitespace-nowrap">
+                        <i data-lucide="zap" class="w-4 h-4 shrink-0 text-yellow-400"></i>
+                        <span>4. Arena Somatória Coperve</span>
+                        <span class="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">20 Qs</span>
+                    </button>
+                    <button onclick="switchModule('corte')" id="nav-corte" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-medium text-slate-400 hover:bg-bat-800/80 transition whitespace-nowrap">
+                        <i data-lucide="trophy" class="w-4 h-4 shrink-0 text-amber-400"></i>
+                        <span>5. Nota Final (Corte 59.67)</span>
+                    </button>
+                    <button onclick="switchModule('vila')" id="nav-vila" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-medium text-slate-400 hover:bg-bat-800/80 transition whitespace-nowrap">
+                        <i data-lucide="brain-circuit" class="w-4 h-4 shrink-0 text-rose-400"></i>
+                        <span>6. Vila do 8: Erros & Cards</span>
+                        <span id="badge-errors-count" class="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">0</span>
+                    </button>
+                    <button onclick="switchModule('cronometro')" id="nav-cronometro" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-medium text-slate-400 hover:bg-bat-800/80 transition whitespace-nowrap">
+                        <i data-lucide="timer" class="w-4 h-4 shrink-0"></i>
+                        <span>7. Velocidade & Ciclo</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Status Alvo 59.67 + Backup -->
+            <div class="hidden lg:block p-4 border-t border-sky-500/20 space-y-3">
+                <div class="p-3.5 rounded-xl bg-bat-950/90 border border-sky-500/25 space-y-1.5">
+                    <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>CORTE ENG. PROD:</span>
+                        <span class="text-amber-400 font-extrabold">59.67 PTS</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span id="sidebar-score" class="text-2xl font-hud font-black text-sky-400">00.00</span>
+                            <span class="text-[10px] text-slate-500 ml-1">atual</span>
+                        </div>
+                        <span id="sidebar-pill" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400">TREINO</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-bat-800 rounded-full overflow-hidden">
+                        <div id="sidebar-progress-bar" class="h-full bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 transition-all duration-500" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1.5">
+                    <button onclick="exportProgressJSON()" class="py-2 px-2 rounded-xl bg-bat-800 hover:bg-sky-500/20 text-slate-300 hover:text-sky-400 text-[11px] font-semibold flex items-center justify-center gap-1 transition">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Backup
+                    </button>
+                    <button onclick="document.getElementById('import-json-input').click()" class="py-2 px-2 rounded-xl bg-bat-800 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 text-[11px] font-semibold flex items-center justify-center gap-1 transition">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Carregar
+                    </button>
+                    <button onclick="openResetModal()" class="py-2 px-2 rounded-xl bg-bat-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 text-[11px] font-semibold flex items-center justify-center gap-1 transition">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ============================================================== -->
+        <!-- CONTEÚDO PRINCIPAL                                             -->
+        <!-- ============================================================== -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1480px] mx-auto w-full overflow-x-hidden space-y-6">
+
+            <!-- ========================================================== -->
+            <!-- BARRA DE RESSONÂNCIA TEMÁTICA (BATMAN • FLASH • NEYMAR • CHAVES) -->
+            <!-- ========================================================== -->
+            <div id="resonance-banner" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-bat-900 via-bat-850 to-bat-900 hud-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-3.5">
+                    <div id="resonance-icon-box" class="w-12 h-12 rounded-2xl bg-sky-500/15 border border-sky-400/40 flex items-center justify-center text-2xl shrink-0">
+                        🦇
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span id="resonance-badge" class="text-[10px] font-hud font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/20 text-sky-400">MODO FUSÃO TOTAL • WAYNETECH</span>
+                            <span class="text-xs font-mono text-amber-400 font-bold">META UFSC 2027: &gt; 59.67</span>
+                        </div>
+                        <p id="resonance-quote" class="text-xs sm:text-sm text-slate-200 font-medium mt-1 italic">
+                            "Kauã, preparação vence talento quando o talento não treina. Matemática (Peso 4) e Física (Peso 3) são as chaves da sua aprovação no CTC."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Seletor de Ressonância -->
+                <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                    <button onclick="setResonanceTheme('fusao')" id="res-btn-fusao" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500 text-bat-950 transition">⚡ Fusão</button>
+                    <button onclick="setResonanceTheme('batman')" id="res-btn-batman" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-bat-800 text-slate-300 hover:text-sky-400 transition">🦇 Batman</button>
+                    <button onclick="setResonanceTheme('flash')" id="res-btn-flash" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-bat-800 text-slate-300 hover:text-red-400 transition">⚡ Flash</button>
+                    <button onclick="setResonanceTheme('neymar')" id="res-btn-neymar" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-bat-800 text-slate-300 hover:text-yellow-400 transition">⚽ Neymar</button>
+                    <button onclick="setResonanceTheme('chaves')" id="res-btn-chaves" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-bat-800 text-slate-300 hover:text-emerald-400 transition">🛢️ Chaves</button>
+                </div>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- MÓDULO 1: CENTRAL TÁTICA & RADAR DE APROVAÇÃO              -->
+            <!-- ========================================================== -->
+            <section id="mod-central" class="module-view space-y-6">
+                <!-- Banner Visual Hero com Ilustração SVG Batcaverna Engenharia -->
+                <div class="rounded-2xl overflow-hidden hud-border bg-bat-900 grid grid-cols-1 lg:grid-cols-12">
+                    <div class="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-5">
+                        <div>
+                            <span class="text-xs font-mono uppercase tracking-widest text-sky-400 font-bold">SISTEMA OPERACIONAL DE APROVAÇÃO • CTC FLORIANÓPOLIS</span>
+                            <h2 class="text-2xl sm:text-3xl font-hud font-black tracking-tight text-white mt-1">
+                                Missão Engenharia de Produção: <span class="text-amber-400">Meta &gt; 59.67</span>
+                            </h2>
+                            <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                                Calibrado com os pesos reais da Coperve/UFSC: <strong>Matemática (Peso 4)</strong> e <strong>Física (Peso 3)</strong> representam <strong>45,16%</strong> de toda a sua nota final! Domine as exatas e garanta sua vaga com folga.
+                            </p>
+                        </div>
+
+                        <!-- Barra de Pesos Oficiais em Destaque -->
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <div class="p-2.5 rounded-xl bg-sky-500/15 border border-sky-400/40 text-center">
+                                <span class="text-[10px] font-mono text-sky-300 block">MATEMÁTICA</span>
+                                <span class="text-lg font-hud font-black text-sky-400">PESO 4</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-amber-500/15 border border-amber-400/40 text-center">
+                                <span class="text-[10px] font-mono text-amber-300 block">FÍSICA</span>
+                                <span class="text-lg font-hud font-black text-amber-400">PESO 3</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-purple-500/15 border border-purple-400/30 text-center">
+                                <span class="text-[10px] font-mono text-purple-300 block">PORTUGUÊS</span>
+                                <span class="text-lg font-hud font-black text-purple-400">PESO 2</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-center">
+                                <span class="text-[10px] font-mono text-emerald-300 block">DISCURSIVAS</span>
+                                <span class="text-lg font-hud font-black text-emerald-400">PESO 2</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-rose-500/15 border border-rose-400/30 text-center">
+                                <span class="text-[10px] font-mono text-rose-300 block">REDAÇÃO</span>
+                                <span class="text-lg font-hud font-black text-rose-400">PESO 1.5</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-center">
+                                <span class="text-[10px] font-mono text-slate-400 block">DEMAIS (4)</span>
+                                <span class="text-lg font-hud font-black text-slate-300">PESO 1</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2.5">
+                            <button onclick="switchModule('arena')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 hover:brightness-110 text-bat-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-sky-500/25 transition flex items-center gap-2">
+                                <i data-lucide="zap" class="w-4 h-4 fill-current"></i> Entrar na Arena Coperve
+                            </button>
+                            <button onclick="switchModule('galeria')" class="px-4 py-2.5 rounded-xl bg-bat-800 hover:bg-bat-700 border border-amber-500/30 text-amber-400 font-bold text-xs sm:text-sm transition flex items-center gap-2">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i> Ver Galeria & Cards Kauã
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ilustração SVG Vetorial de Alta Definição: Batcaverna Engenharia -->
+                    <div class="lg:col-span-5 bg-bat-950 border-t lg:border-t-0 lg:border-l border-sky-500/20 flex items-center justify-center p-4 relative overflow-hidden">
+                        <svg viewBox="0 0 500 320" class="w-full h-auto max-h-[280px] rounded-xl">
+                            <defs>
+                                <radialGradient id="batGlow" cx="50%" cy="45%" r="55%">
+                                    <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.32"/>
+                                    <stop offset="65%" stop-color="#1e3a8a" stop-opacity="0.12"/>
+                                    <stop offset="100%" stop-color="#04070f" stop-opacity="0"/>
+                                </radialGradient>
+                                <linearGradient id="goldRay" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#facc15"/>
+                                    <stop offset="100%" stop-color="#ef4444"/>
+                                </linearGradient>
+                            </defs>
+                            <rect width="500" height="320" fill="#04070f"/>
+                            <circle cx="250" cy="145" r="150" fill="url(#batGlow)"/>
+                            <!-- Grade Holográfica -->
+                            <g stroke="#38bdf8" stroke-opacity="0.14" stroke-width="1">
+                                <line x1="0" y1="60" x2="500" y2="60"/><line x1="0" y1="120" x2="500" y2="120"/>
+                                <line x1="0" y1="180" x2="500" y2="180"/><line x1="0" y1="240" x2="500" y2="240"/>
+                                <line x1="100" y1="0" x2="100" y2="320"/><line x1="250" y1="0" x2="250" y2="320"/>
+                                <line x1="400" y1="0" x2="400" y2="320"/>
+                            </g>
+                            <!-- Anéis HUD Concêntricos -->
+                            <circle cx="250" cy="145" r="112" fill="none" stroke="#38bdf8" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="10 6"/>
+                            <circle cx="250" cy="145" r="88" fill="none" stroke="#f59e0b" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4 4"/>
+                            <!-- Parábola & Onda Senoidal Holográfica -->
+                            <path d="M 40 220 Q 145 40 250 220 T 460 220" fill="none" stroke="#38bdf8" stroke-width="2" stroke-opacity="0.7"/>
+                            <path d="M 70 250 Q 250 55 430 250" fill="none" stroke="#facc15" stroke-width="1.5" stroke-dasharray="5 3"/>
+                            <!-- Engrenagens Industriais (Engenharia de Produção) -->
+                            <g transform="translate(88, 86)" stroke="#38bdf8" fill="none" stroke-width="2" opacity="0.75">
+                                <circle cx="0" cy="0" r="22"/><circle cx="0" cy="0" r="9"/>
+                                <path d="M0,-28 L0,-20 M0,20 L0,28 M-28,0 L-20,0 M20,0 L28,0 M-20,-20 L-14,-14 M14,14 L20,20 M-20,20 L-14,14 M14,-14 L20,-20"/>
+                            </g>
+                            <g transform="translate(412, 86)" stroke="#f59e0b" fill="none" stroke-width="2" opacity="0.75">
+                                <circle cx="0" cy="0" r="20"/><circle cx="0" cy="0" r="8"/>
+                                <path d="M0,-26 L0,-18 M0,18 L0,26 M-26,0 L-18,0 M18,0 L26,0"/>
+                            </g>
+                            <!-- Emblema Morcego Estilizado + Raio Flash -->
+                            <path d="M 145 140 C 175 112, 210 118, 228 134 L 236 114 L 244 128 L 256 128 L 264 114 L 272 134 C 290 118, 325 112, 355 140 C 330 144, 315 158, 308 174 C 292 160, 272 162, 250 184 C 228 162, 208 160, 192 174 C 185 158, 170 144, 145 140 Z"
+                                  fill="#0f172a" stroke="#38bdf8" stroke-width="2.2"/>
+                            <!-- Raio Dourado Central (Força de Aceleração) -->
+                            <polygon points="258,92 232,148 252,148 240,198 274,138 253,138" fill="url(#goldRay)" class="flash-aura"/>
+                            <!-- Textos HUD -->
+                            <text x="250" y="282" text-anchor="middle" fill="#38bdf8" font-family="Orbitron, sans-serif" font-size="12" font-weight="800" letter-spacing="3">WAYNETECH // SPEEDFORCE ENGINE</text>
+                            <text x="250" y="300" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">MAT (P4) • FÍS (P3) • CORTE ALVO: 59.67</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 4 KPIs Estratégicos -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- KPI Matemática Peso 4 -->
+                    <div class="p-5 rounded-2xl bg-bat-900 hud-border">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-mono font-bold uppercase text-sky-400">Matemática (Peso 4)</span>
+                            <span class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-400 text-[10px] font-mono font-bold">25.8% DA NOTA</span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpi-mat-pct" class="text-3xl font-hud font-black text-white">0.0%</span>
+                            <span id="kpi-mat-qs" class="text-xs font-mono text-slate-400">0/8 Qs</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-bat-800 rounded-full mt-3 overflow-hidden">
+                            <div id="kpi-mat-bar" class="h-full bg-sky-400 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Física Peso 3 -->
+                    <div class="p-5 rounded-2xl bg-bat-900 hud-border">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-mono font-bold uppercase text-amber-400">Física (Peso 3)</span>
+                            <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 text-[10px] font-mono font-bold">19.4% DA NOTA</span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpi-fis-pct" class="text-3xl font-hud font-black text-white">0.0%</span>
+                            <span id="kpi-fis-qs" class="text-xs font-mono text-slate-400">0/8 Qs</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-bat-800 rounded-full mt-3 overflow-hidden">
+                            <div id="kpi-fis-bar" class="h-full bg-amber-400 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Nota Ponderada vs Corte 59.67 -->
+                    <div class="p-5 rounded-2xl bg-bat-900 hud-border hud-glow-gold">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-mono font-bold uppercase text-emerald-400">Nota Ponderada UFSC</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-mono font-bold">CORTE: 59.67</span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpi-weighted-score" class="text-3xl font-hud font-black text-emerald-400">00.00</span>
+                            <span id="kpi-margin-badge" class="text-xs font-mono font-bold text-slate-400">0.00 pts</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">Divisor oficial de pesos: <strong>15,5</strong></p>
+                    </div>
+
+                    <!-- KPI Combo Camisa 10 & Horas -->
+                    <div class="p-5 rounded-2xl bg-bat-900 hud-border">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-mono font-bold uppercase text-yellow-400">Combo Camisa 10</span>
+                            <span class="px-2 py-0.5 rounded bg-yellow-500/15 text-yellow-400 text-[10px] font-mono font-bold">OUSADIA & PRECISÃO</span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpi-combo" class="text-3xl font-hud font-black text-yellow-400">0x</span>
+                            <span id="kpi-hours" class="text-xs font-mono text-slate-400">• 0.0h líquidas</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">Acertos seguidos sem zerar somatória</p>
+                    </div>
+                </div>
+
+                <!-- Radar SVG Customizado + Diagnóstico ROI de Pontos -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Radar SVG Vetorial (6 cols) -->
+                    <div class="lg:col-span-6 p-6 rounded-2xl bg-bat-900 hud-border flex flex-col items-center justify-between">
+                        <div class="w-full flex items-center justify-between mb-2">
+                            <div>
+                                <h3 class="font-hud font-bold text-sm text-sky-400 flex items-center gap-2">
+                                    <i data-lucide="radar" class="w-4 h-4"></i> RADAR TÁTICO DE DOMÍNIO (EXATAS + GERAIS)
+                                </h3>
+                                <p class="text-xs text-slate-400">Mapeamento hexagonal dos 6 pilares de aprovação do Kauã</p>
+                            </div>
+                        </div>
+                        <div id="custom-radar-container" class="w-full flex items-center justify-center my-2">
+                            <!-- Renderizado via SVG dinâmico em JS -->
+                        </div>
+                    </div>
+
+                    <!-- Diagnóstico ROI de Pontos (6 cols) -->
+                    <div class="lg:col-span-6 p-6 rounded-2xl bg-bat-900 hud-border space-y-4">
+                        <div>
+                            <h3 class="font-hud font-bold text-sm text-amber-400 flex items-center gap-2">
+                                <i data-lucide="trending-up" class="w-4 h-4"></i> PRIORIDADE DE EVOLUÇÃO (MAIOR ROI DE PONTOS)
+                            </h3>
+                            <p class="text-xs text-slate-400">Onde cada hora estudada gera o maior salto na sua média ponderada para bater 59.67:</p>
+                        </div>
+                        <div id="roi-priority-list" class="space-y-3">
+                            <!-- Renderizado via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================== -->
+            <!-- MÓDULO 2: GALERIA TÁTICA, DESENHOS & CARDS DO KAUÃ         -->
+            <!-- ========================================================== -->
+            <section id="mod-galeria" class="module-view hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">COLEÇÃO VISUAL & RECOMPENSAS DE EVOLUÇÃO</span>
+                        <h2 class="text-2xl sm:text-3xl font-hud font-black text-white">Galeria Temática & Cards Colecionáveis do Kauã</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Ilustrações exclusivas e seu Card Oficial de Vestibulando que evolui de raridade conforme você se aproxima e ultrapassa <strong>59.67</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Card Colecionável Dinâmico do Kauã (Estilo Figurinha / Carta Tática) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <div class="lg:col-span-5 flex justify-center">
+                        <div id="kaua-collectible-card" class="w-full max-w-sm rounded-3xl p-1.5 bg-gradient-to-br from-sky-400 via-amber-400 to-emerald-400 shadow-2xl">
+                            <div class="holo-card rounded-[22px] p-6 space-y-4 border border-white/10">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span id="card-ovr-num" class="text-4xl font-hud font-black text-amber-400 leading-none">78</span>
+                                        <span class="text-[10px] font-mono uppercase text-sky-400 block font-bold mt-0.5">ENG. PRODUÇÃO</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span id="card-rarity-label" class="px-2.5 py-1 rounded-lg text-[10px] font-hud font-black uppercase bg-amber-500/20 text-amber-400 border border-amber-400/40">RARIDADE OURO</span>
+                                        <span class="text-[10px] font-mono text-slate-400 block mt-1">UFSC • CTC 2027</span>
+                                    </div>
+                                </div>
+
+                                <!-- Avatar Ilustrado Fusão Cavaleiro Velocista Camisa 10 -->
+                                <div class="rounded-2xl bg-bat-950/90 border border-sky-500/25 p-3 flex items-center justify-center">
+                                    <svg viewBox="0 0 260 170" class="w-full h-36">
+                                        <defs>
+                                            <linearGradient id="jerseyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#facc15"/>
+                                                <stop offset="100%" stop-color="#16a34a"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <rect width="260" height="170" rx="12" fill="#060b19"/>
+                                        <!-- Raios de fundo -->
+                                        <path d="M20,140 L75,75 L60,75 L110,20" stroke="#ef4444" stroke-width="2.5" fill="none" opacity="0.65"/>
+                                        <path d="M240,140 L185,75 L200,75 L150,20" stroke="#facc15" stroke-width="2.5" fill="none" opacity="0.65"/>
+                                        <!-- Silhueta Herói Camisa 10 -->
+                                        <path d="M85,165 C85,122 105,110 130,110 C155,110 175,122 175,165 Z" fill="url(#jerseyGrad)" stroke="#38bdf8" stroke-width="1.5"/>
+                                        <text x="130" y="148" text-anchor="middle" fill="#04070f" font-family="Orbitron, sans-serif" font-size="20" font-weight="900">10</text>
+                                        <!-- Capuz Tático Batman + Asas Flash -->
+                                        <path d="M106,82 L106,46 L115,62 L145,62 L154,46 L154,82 C154,99 144,108 130,108 C116,108 106,99 106,82 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                                        <!-- Orelhas Flash Douradas -->
+                                        <polyline points="105,78 90,68 105,72" fill="#facc15"/>
+                                        <polyline points="155,78 170,68 155,72" fill="#facc15"/>
+                                        <!-- Visor Branco Brilhante -->
+                                        <polygon points="114,80 126,84 114,86" fill="#38bdf8"/>
+                                        <polygon points="146,80 134,84 146,86" fill="#38bdf8"/>
+                                    </svg>
+                                </div>
+
+                                <div class="text-center">
+                                    <h3 class="font-hud font-black text-xl tracking-wider text-white">KAUÃ • CAMISA 10</h3>
+                                    <p class="text-[11px] font-mono text-slate-400">Estrategista WayneTech • Velocista Coperve</p>
+                                </div>
+
+                                <!-- Atributos da Carta -->
+                                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 font-mono text-xs">
+                                    <div class="bg-bat-950/70 p-2 rounded-xl text-center">
+                                        <span class="text-sky-400 font-black block" id="attr-mat">MAT 82</span>
+                                        <span class="text-[9px] text-slate-500">PESO 4</span>
+                                    </div>
+                                    <div class="bg-bat-950/70 p-2 rounded-xl text-center">
+                                        <span class="text-amber-400 font-black block" id="attr-fis">FÍS 80</span>
+                                        <span class="text-[9px] text-slate-500">PESO 3</span>
+                                    </div>
+                                    <div class="bg-bat-950/70 p-2 rounded-xl text-center">
+                                        <span class="text-emerald-400 font-black block" id="attr-vel">VEL 88</span>
+                                        <span class="text-[9px] text-slate-500">FLASH</span>
+                                    </div>
+                                    <div class="bg-bat-950/70 p-2 rounded-xl text-center">
+                                        <span class="text-purple-400 font-black block" id="attr-tat">TÁT 85</span>
+                                        <span class="text-[9px] text-slate-500">BATMAN</span>
+                                    </div>
+                                    <div class="bg-bat-950/70 p-2 rounded-xl text-center">
+                                        <span class="text-yellow-400 font-black block" id="attr-dri">DRI 90</span>
+                                        <span class="text-[9px] text-slate-500">NEYMAR</span>
+                                    </div>
+                                    <div class="bg-bat-950/70 p-2 rounded-xl text-center">
+                                        <span class="text-rose-400 font-black block" id="attr-ant">VILA 84</span>
+                                        <span class="text-[9px] text-slate-500">ANTI-ERRO</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Painel de Evolução de Raridade & Galeria de 4 Ilustrações -->
+                    <div class="lg:col-span-7 space-y-4">
+                        <div class="p-5 rounded-2xl bg-bat-900 hud-border space-y-3">
+                            <h3 class="font-hud font-bold text-sm text-sky-400">NÍVEIS DE EVOLUÇÃO DO CARD DO KAUÃ</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                                <div class="p-3 rounded-xl bg-bat-950 border border-amber-700/40">
+                                    <span class="text-amber-600 font-bold block">1. BRONZE</span>
+                                    <span class="text-slate-400 text-[11px]">&lt; 52.00 pts</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-bat-950 border border-slate-400/40">
+                                    <span class="text-slate-300 font-bold block">2. PRATA</span>
+                                    <span class="text-slate-400 text-[11px]">52.00 a 59.66</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-bat-950 border border-amber-400/60">
+                                    <span class="text-amber-400 font-bold block">3. OURO (CORTE!)</span>
+                                    <span class="text-slate-400 text-[11px]">59.67 a 67.99</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-bat-950 border border-sky-400/70">
+                                    <span class="text-sky-400 font-bold block">4. DIAMANTE K10</span>
+                                    <span class="text-slate-400 text-[11px]">&ge; 68.00 pts</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Galeria de 4 Ilustrações Temáticas -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Arte 1: Batcaverna -->
+                            <div class="p-4 rounded-2xl bg-bat-900 hud-border space-y-2">
+                                <svg viewBox="0 0 320 150" class="w-full h-32 rounded-xl bg-bat-950">
+                                    <rect width="320" height="150" fill="#050914"/>
+                                    <circle cx="160" cy="75" r="55" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="6 4"/>
+                                    <path d="M95,75 C115,55 135,60 146,70 L152,56 L160,66 L168,56 L174,70 C185,60 205,55 225,75 C208,78 198,88 192,98 C180,88 168,90 160,104 C152,90 140,88 128,98 C122,88 112,78 95,75 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                                    <text x="160" y="135" text-anchor="middle" fill="#38bdf8" font-family="JetBrains Mono" font-size="10">BATCOMPUTADOR • ESTRATÉGIA</text>
+                                </svg>
+                                <h4 class="font-bold text-xs text-sky-400">1. Protocolo Cavaleiro das Trevas</h4>
+                                <p class="text-[11px] text-slate-400">Análise fria de cada proposição da somatória antes de assinalar o gabarito.</p>
+                            </div>
+
+                            <!-- Arte 2: Flash + Neymar -->
+                            <div class="p-4 rounded-2xl bg-bat-900 hud-border space-y-2">
+                                <svg viewBox="0 0 320 150" class="w-full h-32 rounded-xl bg-bat-950">
+                                    <rect width="320" height="150" fill="#13070c"/>
+                                    <ellipse cx="160" cy="125" rx="130" ry="18" fill="none" stroke="#22c55e" stroke-width="2"/>
+                                    <polygon points="175,20 135,78 162,78 145,130 195,68 166,68" fill="#facc15" stroke="#ef4444" stroke-width="2"/>
+                                    <circle cx="220" cy="95" r="14" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+                                    <text x="160" y="142" text-anchor="middle" fill="#facc15" font-family="JetBrains Mono" font-size="10">SPEEDFORCE // CAMISA 10</text>
+                                </svg>
+                                <h4 class="font-bold text-xs text-amber-400">2. Força de Aceleração & Ginga 10</h4>
+                                <p class="text-[11px] text-slate-400">Velocidade de cálculo mental com ousadia decisiva nas questões abertas.</p>
+                            </div>
+
+                            <!-- Arte 3: Vila do 8 & Pêndulos -->
+                            <div class="p-4 rounded-2xl bg-bat-900 hud-border space-y-2">
+                                <svg viewBox="0 0 320 150" class="w-full h-32 rounded-xl bg-bat-950">
+                                    <rect width="320" height="150" fill="#141008"/>
+                                    <!-- Barril do Chaves -->
+                                    <rect x="65" y="65" width="54" height="62" rx="8" fill="#92400e" stroke="#fbbf24" stroke-width="2"/>
+                                    <line x1="65" y1="82" x2="119" y2="82" stroke="#451a03" stroke-width="3"/>
+                                    <line x1="65" y1="110" x2="119" y2="110" stroke="#451a03" stroke-width="3"/>
+                                    <text x="92" y="101" text-anchor="middle" fill="#fef3c7" font-family="Orbitron" font-size="14" font-weight="900">8</text>
+                                    <!-- Pêndulo Físico -->
+                                    <line x1="215" y1="18" x2="255" y2="95" stroke="#38bdf8" stroke-width="2"/>
+                                    <circle cx="255" cy="95" r="14" fill="#38bdf8"/>
+                                    <path d="M 175 95 Q 215 115 255 95" fill="none" stroke="#facc15" stroke-dasharray="4 3"/>
+                                    <text x="160" y="142" text-anchor="middle" fill="#34d399" font-family="JetBrains Mono" font-size="10">VILA DO 8 • ESCUDO ANTI-ERRO</text>
+                                </svg>
+                                <h4 class="font-bold text-xs text-emerald-400">3. Escudo da Vila do 8</h4>
+                                <p class="text-[11px] text-slate-400">Nenhum erro "sem querer querendo": cada distração vira aprendizado permanente.</p>
+                            </div>
+
+                            <!-- Arte 4: Engenharia de Produção -->
+                            <div class="p-4 rounded-2xl bg-bat-900 hud-border space-y-2">
+                                <svg viewBox="0 0 320 150" class="w-full h-32 rounded-xl bg-bat-950">
+                                    <rect width="320" height="150" fill="#061019"/>
+                                    <!-- Gráfico de Otimização -->
+                                    <polyline points="40,115 95,90 145,98 205,52 275,28" fill="none" stroke="#10b981" stroke-width="3"/>
+                                    <line x1="35" y1="62" x2="285" y2="62" stroke="#f43f5e" stroke-dasharray="5 4" stroke-width="1.5"/>
+                                    <text x="235" y="56" fill="#f43f5e" font-family="JetBrains Mono" font-size="9">CORTE 59.67</text>
+                                    <circle cx="275" cy="28" r="5" fill="#facc15"/>
+                                    <text x="160" y="142" text-anchor="middle" fill="#38bdf8" font-family="JetBrains Mono" font-size="10">ENGENHARIA DE PRODUÇÃO • CTC</text>
+                                </svg>
+                                <h4 class="font-bold text-xs text-purple-400">4. Otimização de Processos CTC</h4>
+                                <p class="text-[11px] text-slate-400">Maximização de pontos por minuto usando os pesos 4 (Mat) e 3 (Física).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================== -->
+            <!-- MÓDULO 3: EDITAL UFSC 2027 COMPLETO (30 MÓDULOS)           -->
+            <!-- ========================================================== -->
+            <section id="mod-edital" class="module-view hidden space-y-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-mono uppercase tracking-widest text-sky-400 font-bold">MATRIZ CURRICULAR COMPLETA • PESOS CALIBRADOS</span>
+                        <h2 class="text-2xl sm:text-3xl font-hud font-black text-white">Edital UFSC 2027 — Todas as Matérias</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Foco ultra-aprofundado em <strong>Matemática (Peso 4)</strong> e <strong>Física (Peso 3)</strong> + cobertura estratégica de Português (Peso 2), Redação (1.5) e Gerais (Peso 1).</p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5 bg-bat-900 p-1.5 rounded-2xl border border-sky-500/20">
+                        <button onclick="setEditalFilter('all')" id="edf-all" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500 text-bat-950">Todas (30)</button>
+                        <button onclick="setEditalFilter('matematica')" id="edf-matematica" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-sky-400">Matemática P4 (12)</button>
+                        <button onclick="setEditalFilter('fisica')" id="edf-fisica" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-amber-400">Física P3 (12)</button>
+                        <button onclick="setEditalFilter('gerais')" id="edf-gerais" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-purple-400">Port/Red/Gerais (6)</button>
+                    </div>
+                </div>
+
+                <div id="edital-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <!-- Renderizado via JS -->
+                </div>
+            </section>
+
+            <!-- ========================================================== -->
+            <!-- MÓDULO 4: ARENA SOMATÓRIA COPERVE (20 QUESTÕES)            -->
+            <!-- ========================================================== -->
+            <section id="mod-arena" class="module-view hidden space-y-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-mono uppercase tracking-widest text-yellow-400 font-bold">SIMULADOR DE PROPOSIÇÕES MÚLTIPLAS & ABERTAS</span>
+                        <h2 class="text-2xl sm:text-3xl font-hud font-black text-white">Arena Coperve 2026/2027</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Fórmula oficial proporcional da UFSC: $P = \frac{N_p - (N_c - N_{ac}) - N_{ai}}{N_p}$ com análise de risco anti-chute.</p>
+                    </div>
+                    <select id="arena-filter" onchange="filterArenaQuestions()" class="px-4 py-2.5 rounded-xl bg-bat-900 border border-sky-500/30 text-xs font-bold text-sky-400 focus:outline-none">
+                        <option value="all">Todas as Questões (20 Qs)</option>
+                        <option value="matematica">Matemática • Peso 4 (8 Qs)</option>
+                        <option value="fisica">Física • Peso 3 (8 Qs)</option>
+                        <option value="gerais">Português / Química / Bio / Hum (4 Qs)</option>
+                    </select>
+                </div>
+
+                <!-- Pills de Questões -->
+                <div id="arena-pills" class="flex flex-wrap gap-1.5"></div>
+
+                <!-- Card da Questão + Cartão Resposta -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-8 p-6 sm:p-8 rounded-2xl bg-bat-900 hud-border space-y-6">
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-800">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span id="aq-subj" class="px-2.5 py-1 rounded-lg text-xs font-hud font-extrabold uppercase bg-sky-500/15 text-sky-400">MATEMÁTICA (PESO 4)</span>
+                                <span id="aq-axis" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-bat-800 text-slate-300">Cônicas</span>
+                                <span id="aq-type" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-amber-500/15 text-amber-400">SOMATÓRIA</span>
+                            </div>
+                            <span id="aq-id" class="text-xs font-mono text-slate-400">UFSC-01</span>
+                        </div>
+
+                        <div id="aq-statement" class="text-sm sm:text-base leading-relaxed text-slate-200 space-y-3"></div>
+                        <div id="aq-body" class="space-y-3"></div>
+
+                        <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                            <button onclick="prevArenaQ()" class="px-4 py-2 rounded-xl bg-bat-800 hover:bg-bat-700 text-xs font-bold flex items-center gap-1.5">
+                                <i data-lucide="arrow-left" class="w-4 h-4"></i> Anterior
+                            </button>
+                            <button onclick="nextArenaQ()" class="px-4 py-2 rounded-xl bg-bat-800 hover:bg-bat-700 text-xs font-bold flex items-center gap-1.5">
+                                Próxima <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Cartão Resposta Tático -->
+                    <div class="lg:col-span-4">
+                        <div class="p-6 rounded-2xl bg-bat-900 hud-border space-y-5 sticky top-6">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-hud font-bold text-xs uppercase tracking-wider text-sky-400">CARTÃO-RESPOSTA UFSC</h3>
+                                <span class="text-[11px] font-mono text-slate-400">00 a 99</span>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-bat-950 border border-sky-500/25 text-center">
+                                <span id="aq-input-label" class="text-[11px] uppercase tracking-wider text-slate-400 block mb-1">Soma Assinalada</span>
+                                <input type="number" id="aq-input" min="0" max="99" value="0" oninput="onArenaManualInput()" class="w-28 text-center text-4xl font-hud font-black bg-transparent text-amber-400 focus:outline-none border-b-2 border-amber-400/40" />
+                            </div>
+
+                            <button id="aq-submit-btn" onclick="evaluateArenaQuestion()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:brightness-110 text-bat-950 font-hud font-black text-xs shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i> CONFIRMAR & CALCULAR NOTA
+                            </button>
+
+                            <div id="aq-result-box" class="hidden space-y-4 pt-4 border-t border-slate-800">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="p-3 rounded-xl bg-bat-950 text-center border border-slate-800">
+                                        <span class="text-[10px] uppercase text-slate-400 block">Gabarito</span>
+                                        <span id="aq-res-gab" class="text-xl font-hud font-black text-emerald-400">00</span>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-bat-950 text-center border border-slate-800">
+                                        <span class="text-[10px] uppercase text-slate-400 block">Nota Coperve</span>
+                                        <span id="aq-res-score" class="text-xl font-hud font-black text-amber-400">0.00</span>
+                                    </div>
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-bat-950 border border-sky-500/25 text-xs space-y-1.5">
+                                    <p id="aq-risk-msg" class="text-slate-200 leading-relaxed"></p>
+                                    <p id="aq-formula-msg" class="font-mono text-[10px] text-sky-400 pt-1 border-t border-slate-800"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================== -->
+            <!-- MÓDULO 5: SIMULADOR DE NOTA FINAL (CORTE 59.67 & PESOS)    -->
+            <!-- ========================================================== -->
+            <section id="mod-corte" class="module-view hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">ENGENHARIA DE PRODUÇÃO • NOTA DE CORTE REAL: 59.67</span>
+                        <h2 class="text-2xl sm:text-3xl font-hud font-black text-white">Simulador Oficial de Nota Ponderada UFSC</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Pesos exatos: <strong>Mat (4) • Fís (3) • Port (2) • Disc (2) • Red (1,5) • Ing/Quím/Bio/Hum (1)</strong> — Divisor Total: <strong>15,5</strong>.</p>
+                    </div>
+                    <button onclick="importRealArenaScores()" class="px-4 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-400 text-xs font-bold transition flex items-center gap-2 self-start">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Importar Notas da Arena Coperve
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Sliders das 9 Notas (8 cols) -->
+                    <div class="lg:col-span-8 p-6 rounded-2xl bg-bat-900 hud-border space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="corte-sliders-grid">
+                            <!-- Renderizado via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Placar Final vs 59.67 (4 cols) -->
+                    <div class="lg:col-span-4 space-y-4">
+                        <div class="p-6 rounded-2xl bg-bat-900 hud-border hud-glow-gold space-y-5 sticky top-6">
+                            <div class="text-center space-y-2 p-5 rounded-2xl bg-bat-950 border border-amber-500/30">
+                                <span class="text-xs font-mono uppercase text-slate-400 block">MÉDIA PONDERADA FINAL (0 A 100)</span>
+                                <div id="corte-big-score" class="text-5xl font-hud font-black text-amber-400">00.00</div>
+                                <div id="corte-status-badge" class="inline-block px-3 py-1 rounded-full text-xs font-hud font-black uppercase bg-emerald-500/15 text-emerald-400">
+                                    ACIMA DO CORTE (59.67)
+                                </div>
+                                <p id="corte-margin-detail" class="text-xs text-slate-300 pt-1"></p>
+                            </div>
+
+                            <!-- Simulação de Alavancagem -->
+                            <div class="p-4 rounded-xl bg-sky-500/10 border border-sky-400/30 space-y-2 text-xs">
+                                <h4 class="font-hud font-bold text-sky-400 flex items-center gap-1.5">
+                                    <i data-lucide="rocket" class="w-4 h-4"></i> EFEITO ALAVANCA MAT (4) + FÍS (3)
+                                </h4>
+                                <p class="text-slate-300 leading-relaxed">
+                                    Subir <strong>+1,0 ponto</strong> em Matemática (+4,0 pond.) e <strong>+1,0 ponto</strong> em Física (+3,0 pond.) eleva sua Média Final UFSC em <strong class="text-amber-400">+4,52 pontos</strong> de uma só vez!
+                                </p>
+                            </div>
+
+                            <!-- Critérios Eliminatórios Coperve -->
+                            <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs space-y-1">
+                                <span class="font-bold text-rose-400 block">⚠️ Alerta Eliminatório UFSC:</span>
+                                <p class="text-slate-300">Não pode zerar nenhuma disciplina, nem tirar menos que <strong>3,00 na Redação</strong> ou menos que <strong>2,00 no conjunto das Discursivas</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================== -->
+            <!-- MÓDULO 6: VILA DO 8 (CADERNO DE ERROS & FLASHCARDS)        -->
+            <!-- ========================================================== -->
+            <section id="mod-vila" class="module-view hidden space-y-6">
+                <div>
+                    <span class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold">SISTEMA ANTI-ERRO "FOI SEM QUERER QUERENDO!"</span>
+                    <h2 class="text-2xl sm:text-3xl font-hud font-black text-white">Vila do 8: Caderno de Erros & Flashcards Táticos</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Transforme cada escorregão na somatória em domínio blindado para o dia da prova.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Flashcards 3D (5 cols) -->
+                    <div class="lg:col-span-5 p-6 rounded-2xl bg-bat-900 hud-border space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-hud font-bold text-sm text-sky-400">FLASHCARDS DE FÓRMULAS</h3>
+                            <span id="fc-counter" class="text-xs font-mono text-slate-400">1 / 6</span>
+                        </div>
+
+                        <div class="perspective-1000 h-60 cursor-pointer" onclick="flipFlashcard()">
+                            <div id="fc-inner" class="relative w-full h-full transform-style-3d">
+                                <div class="absolute inset-0 backface-hidden p-6 rounded-2xl bg-bat-950 border border-sky-500/30 flex flex-col justify-between">
+                                    <span id="fc-tag" class="text-[10px] font-mono font-bold text-amber-400">MATEMÁTICA • PESO 4</span>
+                                    <div id="fc-front" class="text-base font-bold text-center text-white my-auto"></div>
+                                    <span class="text-[11px] text-center text-slate-500">Clique para revelar a fórmula</span>
+                                </div>
+                                <div class="absolute inset-0 backface-hidden rotate-y-180 p-6 rounded-2xl bg-bat-950 border-2 border-emerald-400/50 flex flex-col justify-between">
+                                    <span class="text-[10px] font-mono font-bold text-emerald-400">GABARITO WAYNETECH</span>
+                                    <div id="fc-back" class="text-sm text-center text-slate-200 my-auto leading-relaxed"></div>
+                                    <span class="text-[11px] text-center text-amber-400">Avalie abaixo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="nextFlashcard('hard')" class="py-2.5 rounded-xl bg-rose-500/20 text-rose-400 text-xs font-bold">Errei (Hoje)</button>
+                            <button onclick="nextFlashcard('med')" class="py-2.5 rounded-xl bg-amber-500/20 text-amber-400 text-xs font-bold">Médio (2d)</button>
+                            <button onclick="nextFlashcard('easy')" class="py-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 text-xs font-bold">Fácil (7d)</button>
+                        </div>
+                    </div>
+
+                    <!-- Caderno de Erros Vila do 8 (7 cols) -->
+                    <div class="lg:col-span-7 p-6 rounded-2xl bg-bat-900 hud-border space-y-4">
+                        <h3 class="font-hud font-bold text-sm text-rose-400">REGISTRO DE ERROS DA VILA (NOTA &lt; 1.00)</h3>
+                        <div id="vila-error-list" class="space-y-3"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================== -->
+            <!-- MÓDULO 7: CRONÔMETRO SPEEDFORCE & CICLO SEMANAL            -->
+            <!-- ========================================================== -->
+            <section id="mod-cronometro" class="module-view hidden space-y-6">
+                <div>
+                    <span class="text-xs font-mono uppercase tracking-widest text-red-400 font-bold">FORÇA DE ACELERAÇÃO • GESTÃO DE TEMPO UFSC</span>
+                    <h2 class="text-2xl sm:text-3xl font-hud font-black text-white">Cronômetro SpeedForce & Ciclo Semanal do Kauã</h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-5 p-6 rounded-2xl bg-bat-900 hud-border space-y-5">
+                        <div class="flex gap-1.5 bg-bat-950 p-1.5 rounded-xl">
+                            <button onclick="setTimerMode(25, 'Sprint Flash (25m)')" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white">25m Flash</button>
+                            <button onclick="setTimerMode(50, 'Foco Batcaverna (50m)')" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-bat-800 text-slate-300">50m Batman</button>
+                            <button onclick="setTimerMode(240, 'Prova Oficial UFSC (4h)')" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-bat-800 text-slate-300">4h00 UFSC</button>
+                        </div>
+
+                        <div class="p-8 rounded-2xl bg-bat-950 border border-sky-500/25 text-center">
+                            <span id="timer-label" class="text-xs font-mono text-amber-400 font-bold block mb-2">Foco Batcaverna (50m)</span>
+                            <div id="timer-clock" class="text-5xl sm:text-6xl font-hud font-black text-white">50:00</div>
+                            <p class="text-[11px] text-slate-400 mt-3">Ritmo Coperve: 40 questões em 4h = <strong>6 min/questão</strong></p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="startTimer()" class="py-3 rounded-xl bg-emerald-500 text-bat-950 font-hud font-black text-xs">INICIAR</button>
+                            <button onclick="pauseTimer()" class="py-3 rounded-xl bg-amber-500/20 text-amber-400 font-hud font-bold text-xs">PAUSAR</button>
+                            <button onclick="resetTimer()" class="py-3 rounded-xl bg-bat-800 text-slate-300 font-hud font-bold text-xs">ZERAR</button>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 p-6 rounded-2xl bg-bat-900 hud-border space-y-4">
+                        <h3 class="font-hud font-bold text-sm text-emerald-400">CICLO SEMANAL OTIMIZADO (FOCO PESO 4 E PESO 3)</h3>
+                        <div id="cycle-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- MODAL DE AULA CIRÚRGICA DO EDITAL                                  -->
+    <!-- ================================================================== -->
+    <div id="edital-modal" class="fixed inset-0 z-50 hidden bg-bat-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-bat-900 hud-border rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-5 border-b border-slate-800 flex items-start justify-between gap-4">
+                <div>
+                    <span id="em-tag" class="text-[11px] font-mono font-bold text-sky-400 uppercase">MATEMÁTICA • PESO 4</span>
+                    <h3 id="em-title" class="text-lg sm:text-xl font-hud font-black text-white mt-0.5">Título</h3>
+                </div>
+                <button onclick="closeEditalModal()" class="p-2 rounded-xl bg-bat-800 text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-4 text-sm">
+                <div id="em-summary" class="text-slate-300 leading-relaxed"></div>
+                <div class="p-4 rounded-xl bg-bat-950 border border-sky-500/25 space-y-2">
+                    <span class="text-xs font-hud font-bold text-amber-400 block">FÓRMULAS & EQUAÇÕES DECISIVAS</span>
+                    <div id="em-formulas" class="space-y-2 text-xs sm:text-sm overflow-x-auto"></div>
+                </div>
+                <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs sm:text-sm text-slate-200">
+                    <strong class="text-rose-400 block mb-1">🛡️ Escudo Vila do 8 (Pegadinha Coperve):</strong>
+                    <span id="em-trap"></span>
+                </div>
+                <div id="em-checks" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reset -->
+    <div id="reset-modal" class="fixed inset-0 z-50 hidden bg-bat-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-bat-900 hud-border rounded-2xl max-w-md w-full p-6 space-y-4">
+            <h3 class="text-lg font-hud font-black text-rose-400">Resetar Dados do Batcomputador?</h3>
+            <p class="text-xs text-slate-300">Isso apagará seu progresso salvo neste navegador. Exporte um Backup JSON antes se quiser guardar.</p>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl bg-bat-800 text-xs font-bold">Cancelar</button>
+                <button onclick="confirmFullReset()" class="px-4 py-2 rounded-xl bg-rose-500 text-white text-xs font-bold">Confirmar Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- JAVASCRIPT COMPLETO                                                -->
+    <!-- ================================================================== -->
+    <script>
+        // ==================================================================
+        // 1. CONFIGURAÇÃO OFICIAL DE PESOS & CORTE (ENGENHARIA DE PRODUÇÃO)
+        // ==================================================================
+        const CUTOFF_ENG_PROD = 59.67;
+
+        const UFSC_WEIGHTS_CONFIG = [
+            { id: 'mat', name: 'Matemática', weight: 4.0, max: 10, defaultVal: 6.5, color: 'text-sky-400', badge: 'PESO 4' },
+            { id: 'fis', name: 'Física', weight: 3.0, max: 10, defaultVal: 6.5, color: 'text-amber-400', badge: 'PESO 3' },
+            { id: 'port', name: 'Português & Literatura', weight: 2.0, max: 10, defaultVal: 6.5, color: 'text-purple-400', badge: 'PESO 2' },
+            { id: 'disc', name: 'Questões Discursivas', weight: 2.0, max: 10, defaultVal: 6.0, color: 'text-emerald-400', badge: 'PESO 2' },
+            { id: 'red', name: 'Redação Oficial UFSC', weight: 1.5, max: 10, defaultVal: 7.0, color: 'text-rose-400', badge: 'PESO 1,5' },
+            { id: 'ing', name: 'Língua Estrangeira (Inglês)', weight: 1.0, max: 10, defaultVal: 6.5, color: 'text-slate-300', badge: 'PESO 1' },
+            { id: 'quim', name: 'Química', weight: 1.0, max: 10, defaultVal: 6.0, color: 'text-slate-300', badge: 'PESO 1' },
+            { id: 'bio', name: 'Biologia', weight: 1.0, max: 10, defaultVal: 6.0, color: 'text-slate-300', badge: 'PESO 1' },
+            { id: 'hum', name: 'Ciências Humanas (Hist/Geo/Fil/Soc)', weight: 1.0, max: 10, defaultVal: 6.5, color: 'text-slate-300', badge: 'PESO 1' }
+        ];
+        // Soma dos pesos = 4 + 3 + 2 + 2 + 1.5 + 1 + 1 + 1 + 1 = 15.5
+
+        // ==================================================================
+        // 2. FRASES MOTIVACIONAIS TEMÁTICAS (BATMAN • FLASH • NEYMAR • CHAVES)
+        // ==================================================================
+        const RESONANCE_DATA = {
+            fusao: {
+                icon: '⚡',
+                badge: 'MODO FUSÃO TOTAL • WAYNETECH + SPEEDFORCE + K10 + VILA',
+                quote: '"Kauã, estratégia do Batman, velocidade do Flash, ousadia do Neymar e zero erro sem querer querendo: 59.67 já é realidade!"'
+            },
+            batman: {
+                icon: '🦇',
+                badge: 'PROTOCOLO CAVALEIRO DAS TREVAS • BATCOMPUTADOR',
+                quote: '"Não é sobre sorte no chute, Kauã. É sobre dominar Matemática (Peso 4) e Física (Peso 3) com preparação cirúrgica."'
+            },
+            flash: {
+                icon: '⚡',
+                badge: 'FORÇA DE ACELERAÇÃO • S.T.A.R. LABS',
+                quote: '"Cada segundo conta na Coperve! Resolva o cálculo algébrico na velocidade da luz e deixe tempo de sobra para revisar."'
+            },
+            neymar: {
+                icon: '⚽',
+                badge: 'MODO CAMISA 10 • OUSADIA & ALEGRIA',
+                quote: '"Chama a responsabilidade, Kauã! Questão difícil de Cônicas ou Eletrodinâmica é onde você dá o drible decisivo e garante a vaga."'
+            },
+            chaves: {
+                icon: '🛢️',
+                badge: 'ESCUDO DA VILA DO 8 • ANTI-DISTRACÃO',
+                quote: '"Ninguém tem paciência comigo quando marco proposição falsa sem querer querendo! Leia cada palavra com atenção."'
+            }
+        };
+
+        // ==================================================================
+        // 3. EDITAL UFSC 2027 (30 MÓDULOS: 12 MAT + 12 FÍS + 6 GERAIS)
+        // ==================================================================
+        const EDITAL_DATA = [
+            // --- MATEMÁTICA (12 Módulos - PESO 4) ---
+            { id: 'mat-1', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 1', title: '1. Conjuntos, Funções Afim, Quadrática e Inequações', summary: 'Estudo do sinal, vértice da parábola, raízes, função composta e inversa, e inequações produto/quociente.', formulas: ['$$x_v = -\\frac{b}{2a} \\quad | \\quad y_v = -\\frac{\\Delta}{4a} \\quad | \\quad f(x) = a(x-x_1)(x-x_2)$$'], trap: 'Em inequação quociente $\\frac{f(x)}{g(x)} \\ge 0$, as raízes do denominador $g(x)$ NUNCA entram no conjunto solução!' },
+            { id: 'mat-2', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 2', title: '2. Função Modular e Equações/Inequações Modulares', summary: 'Definição algébrica e geométrica de módulo, gráficos por rebatimento e desigualdades modulares.', formulas: ['$$\\sqrt{x^2} = |x| \\quad | \\quad |x| < a \\iff -a < x < a \\quad (a>0)$$'], trap: 'A Coperve ama cobrar $\\sqrt{(x-2)^2} = |x-2|$ em proposições múltiplas!' },
+            { id: 'mat-3', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 2', title: '3. Exponenciais e Logaritmos (Alta Incidência)', summary: 'Propriedades operatórias, mudança de base, condição de existência e modelagem de crescimento.', formulas: ['$$\\log_b(a) = x \\iff b^x = a \\quad (a>0,\\; b>0,\\; b\\ne 1) \\quad | \\quad \\log_b a = \\frac{\\log_c a}{\\log_c b}$$'], trap: 'Se a base estiver entre $0$ e $1$, o sinal da desigualdade INVERTE ao cortar as bases!' },
+            { id: 'mat-4', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 2', title: '4. Progressões Aritmética (PA) e Geométrica (PG)', summary: 'Termo geral, soma finita e soma da PG infinita convergente.', formulas: ['$$S_n^{\\text{PA}} = \\frac{(a_1+a_n)n}{2} \\quad | \\quad S_n^{\\text{PG}} = \\frac{a_1(q^n-1)}{q-1} \\quad | \\quad S_\\infty = \\frac{a_1}{1-q}$$'], trap: 'Só use $S_\\infty = \\frac{a_1}{1-q}$ quando $|q| < 1$.' },
+            { id: 'mat-5', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 3', title: '5. Polinômios, Girard e Números Complexos', summary: 'Teorema do Resto, Briot-Ruffini, Relações de Girard, raízes complexas conjugadas e forma trigonométrica.', formulas: ['$$z = |z|(\\cos\\theta + i\\operatorname{sen}\\theta) \\quad | \\quad z^n = |z|^n(\\cos n\\theta + i\\operatorname{sen} n\\theta)$$'], trap: 'Em polinômio de coeficientes reais, se $a+bi$ é raiz, $a-bi$ também é!' },
+            { id: 'mat-6', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 2', title: '6. Matrizes, Determinantes (Binet) e Sistemas Lineares', summary: 'Matriz inversa, determinantes e discussão de sistemas (SPD, SPI, SI).', formulas: ['$$\\det(k\\cdot A_n) = k^n \\det(A) \\quad | \\quad \\det(A\\cdot B) = \\det A \\cdot \\det B$$'], trap: 'Multiplicar matriz de ordem $n$ por $k$ multiplica o determinante por $k^n$, não por $k$!' },
+            { id: 'mat-7', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 2', title: '7. Trigonometria no Triângulo e Identidades', summary: 'Leis dos Senos e Cossenos, arco duplo e equações trigonométricas no ciclo.', formulas: ['$$a^2 = b^2 + c^2 - 2bc\\cos A \\quad | \\quad \\operatorname{sen}(2x) = 2\\operatorname{sen} x\\cos x$$'], trap: 'Verifique todos os quadrantes válidos no intervalo dado pelo enunciado.' },
+            { id: 'mat-8', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 3', title: '8. Funções Trigonométricas: Gráfico, Período e Imagem', summary: 'Amplitude, período e deslocamento vertical/horizontal de $f(x) = a + b\\operatorname{sen}(cx + d)$.', formulas: ['$$P_{\\text{sen/cos}} = \\frac{2\\pi}{|c|} \\quad | \\quad \\operatorname{Im}(f) = [a - |b|,\\; a + |b|]$$'], trap: 'A função tangente tem período $\\frac{\\pi}{|c|}$, e não $\\frac{2\\pi}{|c|}$!' },
+            { id: 'mat-9', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 1', title: '9. Geometria Plana: Semelhança, Círculo e Áreas', summary: 'Relações métricas, potência de ponto, polígonos regulares e razão entre áreas.', formulas: ['$$A_{\\text{tri}} = \\frac{ab\\operatorname{sen}\\theta}{2} \\quad | \\quad A_{\\text{eq}} = \\frac{L^2\\sqrt{3}}{4} \\quad | \\quad \\frac{A_1}{A_2} = k^2$$'], trap: 'Dobrar o lado de uma figura multiplica a área por $4$ ($k^2$).' },
+            { id: 'mat-10', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 2', title: '10. Geometria Espacial: Prismas, Pirâmides, Cilindros, Cones e Esferas', summary: 'Volumes, áreas laterais, inscrição de sólidos e troncos.', formulas: ['$$V_{\\text{cone/pir}} = \\frac{A_b h}{3} \\quad | \\quad V_{\\text{esfera}} = \\frac{4}{3}\\pi R^3 \\quad | \\quad A_{\\text{esfera}} = 4\\pi R^2$$'], trap: 'No cone equilátero, a geratriz vale $g = 2R$.' },
+            { id: 'mat-11', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 3', title: '11. Geometria Analítica e Cônicas (Elipse, Hipérbole, Parábola)', summary: 'Distância ponto-reta, circunferência e equações reduzidas das cônicas.', formulas: ['$$\\text{Elipse: } \\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1 \\;(a^2=b^2+c^2) \\quad | \\quad \\text{Hipérbole: } \\frac{x^2}{a^2}-\\frac{y^2}{b^2}=1 \\;(c^2=a^2+b^2)$$'], trap: 'Na hipérbole $e = c/a > 1$; na elipse $e = c/a < 1$.' },
+            { id: 'mat-12', group: 'matematica', tag: 'MATEMÁTICA • PESO 4 • NÍVEL 3', title: '12. Combinatória, Binômio de Newton, Probabilidade e Estatística', summary: 'Arranjos, combinações, termo geral do binômio, probabilidade condicional e desvio padrão.', formulas: ['$$C_{n,p} = \\frac{n!}{p!(n-p)!} \\quad | \\quad T_{p+1} = C_{n,p} x^{n-p} a^p \\quad | \\quad P(A|B) = \\frac{P(A\\cap B)}{P(B)}$$'], trap: 'Sempre ordene os dados antes de calcular a Mediana!' },
+
+            // --- FÍSICA (12 Módulos - PESO 3) ---
+            { id: 'fis-1', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 1', title: '1. Cinemática Escalar, Vetorial e Gráficos', summary: 'MU, MUV, leitura de áreas e inclinações em gráficos $s \\times t$ e $v \\times t$.', formulas: ['$$v = v_0 + at \\quad | \\quad \\Delta s = v_0 t + \\frac{at^2}{2} \\quad | \\quad v^2 = v_0^2 + 2a\\Delta s$$'], trap: 'Distância percorrida soma módulos das áreas; deslocamento considera sinal!' },
+            { id: 'fis-2', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 2', title: '2. Lançamentos Oblíquo/Horizontal e MCU', summary: 'Independência dos movimentos, alcance máximo, acoplamento de polias e aceleração centrípeta.', formulas: ['$$A = \\frac{v_0^2 \\operatorname{sen}(2\\theta)}{g} \\quad | \\quad v = \\omega R \\quad | \\quad a_{\\text{cp}} = \\frac{v^2}{R}$$'], trap: 'No topo do lançamento oblíquo, $v_y = 0$, mas $v_x = v_0\\cos\\theta \\ne 0$!' },
+            { id: 'fis-3', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 2', title: '3. Leis de Newton, Plano Inclinado e Atrito', summary: 'Blocos, polias, atrito estático vs cinético e resultante centrípeta.', formulas: ['$$F_R = ma \\quad | \\quad P_x = P\\operatorname{sen}\\theta \\quad | \\quad f_{\\text{at,cin}} = \\mu_c N$$'], trap: 'Ação e reação atuam em corpos distintos e nunca se anulam.' },
+            { id: 'fis-4', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 3', title: '4. Trabalho, Energia Mecânica e Quantidade de Movimento', summary: 'Conservação da energia, teorema da energia cinética, impulso e colisões.', formulas: ['$$W_{\\text{tot}} = \\Delta E_c \\quad | \\quad E_m = \\frac{mv^2}{2} + mgh + \\frac{kx^2}{2} \\quad | \\quad \\vec{I} = \\Delta \\vec{Q}$$'], trap: 'Em colisão inelástica, $E_c$ diminui, mas $\\vec{Q}$ total se conserva!' },
+            { id: 'fis-5', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 2', title: '5. Estática, Hidrostática e Gravitação Universal', summary: 'Torque, Stevin, Pascal, Empuxo de Arquimedes e Leis de Kepler.', formulas: ['$$M = Fd\\operatorname{sen}\\theta \\quad | \\quad E = \\rho_{\\text{liq}} V_{\\text{sub}} g \\quad | \\quad \\frac{T^2}{R^3} = \\text{cte}$$'], trap: 'Empuxo usa a densidade do LÍQUIDO e o volume SUBMERSO.' },
+            { id: 'fis-6', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 2', title: '6. Calorimetria, Dilatação Térmica e Condução', summary: 'Calor sensível e latente, trocas de calor, dilatação de sólidos/líquidos e Lei de Fourier.', formulas: ['$$Q = mc\\Delta T \\quad | \\quad Q = mL \\quad | \\quad \\Delta L = L_0 \\alpha \\Delta T$$'], trap: 'Furos em chapas metálicas dilatam junto com a chapa!' },
+            { id: 'fis-7', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 3', title: '7. Gases Ideais, Termodinâmica e Ciclo de Carnot', summary: 'Clapeyron, 1ª Lei ($\\Delta U = Q - W$), transformações gasosas e rendimento de Carnot.', formulas: ['$$PV = nRT \\quad | \\quad \\Delta U = Q - W \\quad | \\quad \\eta_{\\text{Carnot}} = 1 - \\frac{T_f}{T_q}$$'], trap: 'Use temperatura SEMPRE em Kelvin ($T_K = T_C + 273$)!' },
+            { id: 'fis-8', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 2', title: '8. Ondulatória, Acústica e Efeito Doppler', summary: 'Equação fundamental, interferência, ondas estacionárias e Efeito Doppler.', formulas: ['$$v = \\lambda f \\quad | \\quad f_{\\text{obs}} = f_{\\text{fonte}}\\left(\\frac{v_{\\text{som}} \\pm v_{\\text{obs}}}{v_{\\text{som}} \\mp v_{\\text{fonte}}}\\right)$$'], trap: 'Na refração, a frequência $f$ da onda não muda!' },
+            { id: 'fis-9', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 2', title: '9. Óptica Geométrica: Reflexão, Refração, Espelhos e Lentes', summary: 'Lei de Snell, reflexão total, Equação de Gauss e vergência.', formulas: ['$$n_1\\operatorname{sen}\\theta_1 = n_2\\operatorname{sen}\\theta_2 \\quad | \\quad \\frac{1}{f} = \\frac{1}{p} + \\frac{1}{p\'} \\quad | \\quad A = -\\frac{p\'}{p}$$'], trap: 'Espelho convexo e lente divergente sempre geram imagem virtual, direita e menor.' },
+            { id: 'fis-10', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 2', title: '10. Eletrostática: Coulomb, Campo, Potencial e Capacitores', summary: 'Força elétrica, campo uniforme, potencial escalar e energia armazenada.', formulas: ['$$F = \\frac{k_0|Q_1Q_2|}{d^2} \\quad | \\quad V = \\frac{k_0 Q}{d} \\quad | \\quad E_{\\text{cap}} = \\frac{CU^2}{2}$$'], trap: 'Potencial $V$ carrega o sinal da carga $Q$!' },
+            { id: 'fis-11', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 3', title: '11. Eletrodinâmica: Circuitos, Geradores e Kirchhoff', summary: 'Leis de Ohm, potência elétrica, Ponte de Wheatstone e geradores/receptores reais.', formulas: ['$$U = Ri \\quad | \\quad P = Ri^2 \\quad | \\quad U_{\\text{ger}} = \\varepsilon - ri$$'], trap: 'Potência máxima transferida ocorre quando $R_{\\text{ext}} = r_{\\text{int}}$ ($\\eta = 50\\%$).' },
+            { id: 'fis-12', group: 'fisica', tag: 'FÍSICA • PESO 3 • NÍVEL 3', title: '12. Magnetismo, Indução de Faraday e Física Moderna', summary: 'Força magnética, Lei de Faraday-Lenz, Efeito Fotoelétrico e Relatividade Restrita.', formulas: ['$$F_m = |q|vB\\operatorname{sen}\\theta \\quad | \\quad E_{c,\\text{máx}} = hf - \\Phi \\quad | \\quad \\Delta t = \\gamma \\Delta t_0$$'], trap: 'Força magnética nunca realiza trabalho sobre carga elétrica ($\\vec{F}_m \\perp \\vec{v}$).' },
+
+            // --- DEMAIS MATÉRIAS DO EDITAL UFSC 2027 (6 Módulos Estratégicos) ---
+            { id: 'ger-1', group: 'gerais', tag: 'PORTUGUÊS & LITERATURA • PESO 2', title: '13. Interpretação, Gramática Funcional e Obras UFSC 2027', summary: 'Coesão e coerência, sintaxe, semântica, figuras de linguagem e análise das obras literárias obrigatórias da UFSC.', formulas: ['$$\\text{Peso 2.0 na Média Final • Foco em inferência textual e intertextualidade}$$'], trap: 'A Coperve cobra detalhes específicos do enredo e narrador das obras literárias indicadas.' },
+            { id: 'ger-2', group: 'gerais', tag: 'REDAÇÃO & DISCURSIVAS • PESOS 1.5 E 2.0', title: '14. Gêneros Textuais UFSC + Estrutura das 2 Discursivas', summary: 'Domínio de dissertação, carta, crônica ou manifesto (UFSC) e organização passo a passo das questões discursivas.', formulas: ['$$\\text{Discursivas (Peso 2.0) + Redação (Peso 1.5) = 3.5 pontos de peso!}$$'], trap: 'Nas discursivas de Exatas, explicite fórmulas, unidades no SI e cada etapa do raciocínio.' },
+            { id: 'ger-3', group: 'gerais', tag: 'QUÍMICA • PESO 1', title: '15. Físico-Química, Estequiometria, Termoquímica e Orgânica', summary: 'Cálculos estequiométricos, soluções, equilíbrio químico, pilhas/eletrólise e funções orgânicas.', formulas: ['$$PV = nRT \\quad | \\quad \\Delta H = H_{\\text{prod}} - H_{\\text{reag}} \\quad | \\quad \\text{pH} = -\\log[H^+]$$'], trap: 'Atenção ao rendimento e pureza nos cálculos estequiométricos.' },
+            { id: 'ger-4', group: 'gerais', tag: 'BIOLOGIA • PESO 1', title: '16. Ecologia, Genética, Citologia e Fisiologia Humana', summary: 'Ciclos biogeoquímicos, leis de Mendel, divisão celular e sistemas do corpo humano.', formulas: ['$$\\text{Ecologia e Genética lideram a incidência na prova do 1º dia da UFSC}$$'], trap: 'Não confunda mitose (equacional) com meiose (reducional).' },
+            { id: 'ger-5', group: 'gerais', tag: 'INGLÊS • PESO 1', title: '17. Compreensão Leitora, Falsos Cognatos e Conectivos', summary: 'Leitura instrumental de textos jornalísticos e científicos, tempos verbais e vocabulário.', formulas: ['$$\\text{Foco em ideia central, referência pronominal e conectivos lógicos}$$'], trap: 'Cuidado com falsos cognatos clássicos (actually, pretend, push, fabric).' },
+            { id: 'ger-6', group: 'gerais', tag: 'CIÊNCIAS HUMANAS • PESO 1', title: '18. História (Brasil/SC), Geografia, Filosofia e Sociologia', summary: 'História de Santa Catarina e do Brasil, geopolítica, cartografia, ética e sociologia contemporânea.', formulas: ['$$\\text{20 questões no 2º dia • Boa base garante estabilidade na média}$$'], trap: 'A UFSC costuma incluir questões sobre história e geografia de Santa Catarina.' }
+        ];
+
+        // ==================================================================
+        // 4. BANCO DE 20 QUESTÕES PADRÃO COPERVE (FOCO MAT P4 + FÍS P3)
+        // ==================================================================
+        const ARENA_QUESTIONS = [
+            // --- MATEMÁTICA (8 Questões - Peso 4) ---
+            {
+                id: 'MAT-01', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Cônicas', type: 'multipla',
+                statement: 'Considere a elipse $\\mathcal{E}$ de equação $9x^2 + 25y^2 - 36x + 50y - 164 = 0$. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'O centro da elipse é o ponto $C(2, -1)$.', isCorrect: true, exp: 'CORRETA (01): $9(x-2)^2 + 25(y+1)^2 = 225 \\implies \\frac{(x-2)^2}{25} + \\frac{(y+1)^2}{9} = 1$. Centro $C(2, -1)$.' },
+                    { code: 2, text: 'O eixo maior é paralelo ao eixo $Ox$ e mede $10$ unidades.', isCorrect: true, exp: 'CORRETA (02): $a^2 = 25 \\implies a = 5 \\implies 2a = 10$.' },
+                    { code: 4, text: 'A distância focal da elipse é igual a $8$ unidades.', isCorrect: true, exp: 'CORRETA (04): $c^2 = a^2 - b^2 = 25 - 9 = 16 \\implies c = 4 \\implies 2c = 8$.' },
+                    { code: 8, text: 'A excentricidade dessa elipse vale $e = 1{,}25$.', isCorrect: false, exp: 'FALSA (08): Na elipse $e = c/a = 4/5 = 0{,}8 < 1$.' }
+                ]
+            },
+            {
+                id: 'MAT-02', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Logaritmos', type: 'multipla',
+                statement: 'Seja a função $f(x) = \\log_3(x^2 - 4x - 5)$. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'O domínio de $f$ nos reais é $D(f) = (-\\infty, -1) \\cup (5, +\\infty)$.', isCorrect: true, exp: 'CORRETA (01): $x^2 - 4x - 5 > 0 \\implies (x+1)(x-5) > 0 \\implies x < -1$ ou $x > 5$.' },
+                    { code: 2, text: 'A equação $f(x) = 2$ admite como solução $x = 7$ e $x = -3$.', isCorrect: false, exp: 'FALSA (02): $x^2 - 4x - 5 = 3^2 = 9 \\implies x^2 - 4x - 14 = 0$, cujas raízes são $2 \\pm 3\\sqrt{2}$.' },
+                    { code: 4, text: 'Para $x = 6$, o valor numérico de $f(6)$ é igual a $\\log_3 7$.', isCorrect: true, exp: 'CORRETA (04): $f(6) = \\log_3(36 - 24 - 5) = \\log_3 7$.' },
+                    { code: 8, text: 'O gráfico de $f$ intercepta o eixo das abscissas nos pontos de abscissas $2 + \\sqrt{10}$ e $2 - \\sqrt{10}$.', isCorrect: true, exp: 'CORRETA (08): $f(x) = 0 \\implies x^2 - 4x - 5 = 1 \\implies x^2 - 4x - 6 = 0 \\implies x = 2 \\pm \\sqrt{10}$.' }
+                ]
+            },
+            {
+                id: 'MAT-03', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Trigonometria', type: 'multipla',
+                statement: 'Sobre a função $g(x) = 4 - 3\\cos(2x)$, definida para $x \\in \\mathbb{R}$, assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'O conjunto imagem de $g$ é o intervalo fechado $[1, 7]$.', isCorrect: true, exp: 'CORRETA (01): $\\operatorname{Im}(g) = [4 - 3, 4 + 3] = [1, 7]$.' },
+                    { code: 2, text: 'O período fundamental de $g$ é igual a $\\pi$.', isCorrect: true, exp: 'CORRETA (02): $P = \\frac{2\\pi}{2} = \\pi$.' },
+                    { code: 4, text: 'O valor mínimo da função ocorre quando $\\cos(2x) = 1$ e vale $1$.', isCorrect: true, exp: 'CORRETA (04): Como há sinal negativo ($-3\\cos 2x$), o mínimo ocorre para $\\cos(2x)=1 \\implies 4 - 3(1) = 1$.' },
+                    { code: 8, text: 'Para $x = \\frac{\\pi}{4}$, temos $g\\left(\\frac{\\pi}{4}\\right) = 7$.', isCorrect: false, exp: 'FALSA (08): $g(\\pi/4) = 4 - 3\\cos(\\pi/2) = 4 - 0 = 4$.' }
+                ]
+            },
+            {
+                id: 'MAT-04', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Geometria Espacial', type: 'multipla',
+                statement: 'Um tanque cilíndrico reto de raio $R = 2\\text{ m}$ e altura $H = 9\\text{ m}$ está cheio de óleo e será esvaziado em cones retos de raio $r = 1\\text{ m}$ e altura $h = 3\\text{ m}$. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'O volume do cilindro é $36\\pi\\text{ m}^3$.', isCorrect: true, exp: 'CORRETA (01): $V = \\pi R^2 H = \\pi \\cdot 4 \\cdot 9 = 36\\pi\\text{ m}^3$.' },
+                    { code: 2, text: 'O volume de cada cone é $\\pi\\text{ m}^3$.', isCorrect: true, exp: 'CORRETA (02): $V_c = \\frac{\\pi \\cdot 1^2 \\cdot 3}{3} = \\pi\\text{ m}^3$.' },
+                    { code: 4, text: 'São necessários $36$ cones para esvaziar completamente o cilindro.', isCorrect: true, exp: 'CORRETA (04): $36\\pi / \\pi = 36$.' },
+                    { code: 8, text: 'A área total da superfície do cilindro vale $40\\pi\\text{ m}^2$.', isCorrect: false, exp: 'FALSA (08): $A_T = 2\\pi R^2 + 2\\pi R H = 8\\pi + 36\\pi = 44\\pi\\text{ m}^2$.' }
+                ]
+            },
+            {
+                id: 'MAT-05', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Combinatória & Prob.', type: 'multipla',
+                statement: 'Uma equipe de Engenharia de Produção tem $7$ integrantes ($4$ mulheres e $3$ homens). Deseja-se formar uma comissão de $3$ pessoas. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'O total de comissões possíveis é igual a $35$.', isCorrect: true, exp: 'CORRETA (01): $C_{7,3} = \\frac{7\\cdot 6\\cdot 5}{6} = 35$.' },
+                    { code: 2, text: 'Existem $18$ comissões compostas por $2$ mulheres e $1$ homem.', isCorrect: true, exp: 'CORRETA (02): $C_{4,2} \\cdot C_{3,1} = 6 \\cdot 3 = 18$.' },
+                    { code: 4, text: 'O número de comissões com pelo menos um homem é $31$.', isCorrect: true, exp: 'CORRETA (04): Total ($35$) menos só mulheres ($C_{4,3} = 4$) $= 31$.' },
+                    { code: 8, text: 'A probabilidade de sortear uma comissão formada apenas por homens é superior a $5\\%$.', isCorrect: false, exp: 'FALSA (08): $P = \\frac{C_{3,3}}{35} = \\frac{1}{35} \\approx 2{,}85\\% < 5\\%$.' }
+                ]
+            },
+            {
+                id: 'MAT-06', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Polinômios', type: 'multipla',
+                statement: 'Dado o polinômio $P(x) = x^3 - 9x^2 + 26x - 24$, assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'O número $x = 2$ é raiz de $P(x)$.', isCorrect: true, exp: 'CORRETA (01): $P(2) = 8 - 36 + 52 - 24 = 0$.' },
+                    { code: 2, text: 'As três raízes de $P(x) = 0$ são $2, 3$ e $4$.', isCorrect: true, exp: 'CORRETA (02): $2+3+4 = 9$, $2\\cdot 3 + 2\\cdot 4 + 3\\cdot 4 = 26$, $2\\cdot 3\\cdot 4 = 24$.' },
+                    { code: 4, text: 'O resto da divisão de $P(x)$ por $(x - 5)$ é igual a $6$.', isCorrect: true, exp: 'CORRETA (04): $P(5) = 125 - 225 + 130 - 24 = 6$.' },
+                    { code: 8, text: 'A soma dos inversos das raízes é igual a $\\frac{13}{24}$.', isCorrect: false, exp: 'FALSA (08): $\\frac{1}{2} + \\frac{1}{3} + \\frac{1}{4} = \\frac{26}{24} = \\frac{13}{12}$.' }
+                ]
+            },
+            {
+                id: 'MAT-07', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Geometria Plana', type: 'aberta',
+                statement: '<strong>[QUESTÃO ABERTA UFSC]</strong> Em um triângulo $ABC$, os lados $AB = 8\\text{ cm}$ e $AC = 15\\text{ cm}$ formam um ângulo interno $\\hat{A} = 60^\\circ$. Determine, em centímetros, a medida do lado $BC$.',
+                openAnswer: 13,
+                openExplanation: 'Lei dos Cossenos: $a^2 = 8^2 + 15^2 - 2\\cdot 8\\cdot 15\\cdot \\cos 60^\\circ = 64 + 225 - 120 = 169 \\implies a = \\mathbf{13\\text{ cm}}$.'
+            },
+            {
+                id: 'MAT-08', group: 'matematica', badge: 'MATEMÁTICA • PESO 4', axis: 'Analítica', type: 'aberta',
+                statement: '<strong>[QUESTÃO ABERTA UFSC]</strong> Calcule o quadrado da distância entre os pontos $A(1, 2)$ e $B(7, 10)$ no plano cartesiano.',
+                openAnswer: 100,
+                openExplanation: '$d^2 = (7 - 1)^2 + (10 - 2)^2 = 6^2 + 8^2 = 36 + 64 = \\mathbf{100}$.'
+            },
+
+            // --- FÍSICA (8 Questões - Peso 3) ---
+            {
+                id: 'FIS-01', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Mecânica', type: 'multipla',
+                statement: 'Um bloco de massa $m = 5{,}0\\text{ kg}$ desliza a partir do repouso de uma altura $h = 3{,}2\\text{ m}$ em uma rampa sem atrito, entrando em um trecho plano horizontal com atrito cinético $\\mu_c = 0{,}4$. Adote $g = 10\\text{ m/s}^2$ e assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'A energia mecânica inicial do bloco vale $160\\text{ J}$.', isCorrect: true, exp: 'CORRETA (01): $E_m = mgh = 5 \\cdot 10 \\cdot 3{,}2 = 160\\text{ J}$.' },
+                    { code: 2, text: 'A velocidade do bloco na base da rampa é de $8{,}0\\text{ m/s}$.', isCorrect: true, exp: 'CORRETA (02): $v = \\sqrt{2gh} = \\sqrt{64} = 8{,}0\\text{ m/s}$.' },
+                    { code: 4, text: 'A força de atrito cinético no trecho horizontal vale $20\\text{ N}$.', isCorrect: true, exp: 'CORRETA (04): $f_{\\text{at}} = \\mu_c mg = 0{,}4 \\cdot 50 = 20\\text{ N}$.' },
+                    { code: 8, text: 'O bloco percorre $16\\text{ m}$ no trecho plano até parar.', isCorrect: false, exp: 'FALSA (08): $f_{\\text{at}} \\cdot d = E_m \\implies 20 d = 160 \\implies d = 8{,}0\\text{ m}$.' }
+                ]
+            },
+            {
+                id: 'FIS-02', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Termodinâmica', type: 'multipla',
+                statement: 'Uma máquina de Carnot opera entre $T_q = 427\\,^\\circ\\text{C}$ e $T_f = 77\\,^\\circ\\text{C}$, absorvendo $4{,}0\\text{ kJ}$ da fonte quente por ciclo. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'As temperaturas absolutas valem $700\\text{ K}$ e $350\\text{ K}$.', isCorrect: true, exp: 'CORRETA (01): $427+273=700\\text{ K}$ e $77+273=350\\text{ K}$.' },
+                    { code: 2, text: 'O rendimento da máquina é de $50\\%$.', isCorrect: true, exp: 'CORRETA (02): $\\eta = 1 - 350/700 = 0{,}5 = 50\\%$.' },
+                    { code: 4, text: 'O trabalho útil realizado por ciclo é de $2{,}0\\text{ kJ}$.', isCorrect: true, exp: 'CORRETA (04): $W = 0{,}5 \\cdot 4{,}0 = 2{,}0\\text{ kJ}$.' },
+                    { code: 8, text: 'O calor rejeitado para a fonte fria é de $1{,}0\\text{ kJ}$.', isCorrect: false, exp: 'FALSA (08): $Q_f = Q_q - W = 4{,}0 - 2{,}0 = 2{,}0\\text{ kJ}$.' }
+                ]
+            },
+            {
+                id: 'FIS-03', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Eletrodinâmica', type: 'multipla',
+                statement: 'Um gerador real ($\\varepsilon = 24\\text{ V}$, $r = 2{,}0\\ \\Omega$) alimenta um resistor externo $R = 6{,}0\\ \\Omega$. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'A corrente elétrica no circuito vale $3{,}0\\text{ A}$.', isCorrect: true, exp: 'CORRETA (01): $i = 24 / (6 + 2) = 3{,}0\\text{ A}$.' },
+                    { code: 2, text: 'A ddp nos terminais do gerador é igual a $18\\text{ V}$.', isCorrect: true, exp: 'CORRETA (02): $U = \\varepsilon - ri = 24 - 2\\cdot 3 = 18\\text{ V}$.' },
+                    { code: 4, text: 'O rendimento elétrico do gerador nessa condição é de $75\\%$.', isCorrect: true, exp: 'CORRETA (04): $\\eta = U/\\varepsilon = 18/24 = 0{,}75 = 75\\%$.' },
+                    { code: 8, text: 'A potência útil entregue ao resistor $R$ é de $72\\text{ W}$.', isCorrect: false, exp: 'FALSA (08): $P_u = U\\cdot i = 18 \\cdot 3 = 54\\text{ W}$.' }
+                ]
+            },
+            {
+                id: 'FIS-04', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Óptica Geométrica', type: 'multipla',
+                statement: 'Um objeto real é colocado a $30\\text{ cm}$ de um espelho esférico côncavo de distância focal $f = 10\\text{ cm}$. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'O raio de curvatura do espelho vale $20\\text{ cm}$.', isCorrect: true, exp: 'CORRETA (01): $R = 2f = 20\\text{ cm}$.' },
+                    { code: 2, text: 'A imagem forma-se a $15\\text{ cm}$ do vértice e é real.', isCorrect: true, exp: 'CORRETA (02): $\\frac{1}{10} = \\frac{1}{30} + \\frac{1}{p\'} \\implies p\' = +15\\text{ cm}$.' },
+                    { code: 4, text: 'A imagem é invertida e tem metade da altura do objeto.', isCorrect: true, exp: 'CORRETA (04): $A = -p\'/p = -15/30 = -0{,}5$.' },
+                    { code: 8, text: 'A imagem formada é virtual e maior.', isCorrect: false, exp: 'FALSA (08): Objeto além do centro de curvatura gera imagem real, invertida e menor.' }
+                ]
+            },
+            {
+                id: 'FIS-05', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Ondulatória', type: 'multipla',
+                statement: 'Uma onda periódica propaga-se numa corda com frequência $f = 20\\text{ Hz}$ e comprimento de onda $\\lambda = 0{,}5\\text{ m}$. Assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'A velocidade de propagação da onda vale $10\\text{ m/s}$.', isCorrect: true, exp: 'CORRETA (01): $v = \\lambda f = 0{,}5 \\cdot 20 = 10\\text{ m/s}$.' },
+                    { code: 2, text: 'O período de oscilação da onda é igual a $0{,}05\\text{ s}$.', isCorrect: true, exp: 'CORRETA (02): $T = 1/f = 1/20 = 0{,}05\\text{ s}$.' },
+                    { code: 4, text: 'Se a onda passar para outra corda onde sua velocidade dobra, a frequência passará a ser $40\\text{ Hz}$.', isCorrect: false, exp: 'FALSA (04): A frequência depende apenas da fonte e não muda na refração!' },
+                    { code: 8, text: 'O fenômeno da difração permite que ondas sonoras contornem obstáculos.', isCorrect: true, exp: 'CORRETA (08): Definição exata de difração.' }
+                ]
+            },
+            {
+                id: 'FIS-06', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Física Moderna', type: 'multipla',
+                statement: 'Sobre o Efeito Fotoelétrico e a Relatividade Restrita, assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'A energia de um fóton é diretamente proporcional à frequência da radiação ($E = hf$).', isCorrect: true, exp: 'CORRETA (01): Equação de Planck.' },
+                    { code: 2, text: 'A velocidade da luz no vácuo é a mesma para todos os observadores inerciais.', isCorrect: true, exp: 'CORRETA (02): 2º Postulado de Einstein.' },
+                    { code: 4, text: 'Aumentar apenas a intensidade da luz (mantendo $f < f_0$) provoca emissão de fotoelétrons.', isCorrect: false, exp: 'FALSA (04): Se $f < f_0$, nenhum elétron é arrancado, independentemente da intensidade.' },
+                    { code: 8, text: 'Partículas materiais em movimento possuem comprimento de onda $\\lambda = h/p$.', isCorrect: true, exp: 'CORRETA (08): Relação de de Broglie.' }
+                ]
+            },
+            {
+                id: 'FIS-07', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Cinemática', type: 'aberta',
+                statement: '<strong>[QUESTÃO ABERTA UFSC]</strong> Um automóvel parte do repouso com aceleração escalar constante de $3{,}0\\text{ m/s}^2$. Determine, em metros, a distância percorrida após $6{,}0\\text{ s}$.',
+                openAnswer: 54,
+                openExplanation: '$\\Delta s = \\frac{a t^2}{2} = \\frac{3{,}0 \\cdot 36}{2} = \\mathbf{54\\text{ m}}$.'
+            },
+            {
+                id: 'FIS-08', group: 'fisica', badge: 'FÍSICA • PESO 3', axis: 'Hidrostática', type: 'aberta',
+                statement: '<strong>[QUESTÃO ABERTA UFSC]</strong> Um corpo de volume $0{,}004\\text{ m}^3$ está totalmente submerso em água ($\\rho = 1000\\text{ kg/m}^3$). Calcule, em Newtons ($\\text{N}$), a intensidade do empuxo sobre o corpo ($g = 10\\text{ m/s}^2$).',
+                openAnswer: 40,
+                openExplanation: '$E = \\rho \\cdot V \\cdot g = 1000 \\cdot 0{,}004 \\cdot 10 = \\mathbf{40\\text{ N}}$.'
+            },
+
+            // --- GERAIS (4 Questões - Português Peso 2 + Química/Bio/Hum Peso 1) ---
+            {
+                id: 'GER-01', group: 'gerais', badge: 'PORTUGUÊS • PESO 2', axis: 'Gramática & Semântica', type: 'multipla',
+                statement: 'Com relação às normas da língua portuguesa padrão e recursos expressivos, assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'Na frase "Fazem dois anos que estudo para a UFSC", o verbo "fazer" está corretamente flexionado no plural.', isCorrect: false, exp: 'FALSA (01): Verbo "fazer" indicando tempo decorrido é impessoal: "Faz dois anos".' },
+                    { code: 2, text: 'A conjunção "conquanto" introduz uma oração subordinada adverbial concessiva, equivalente a "embora".', isCorrect: true, exp: 'CORRETA (02): "Conquanto" = embora, ainda que (concessão).' },
+                    { code: 4, text: 'O acento grave indicativo de crase é obrigatório na expressão "à medida que".', isCorrect: true, exp: 'CORRETA (04): Locução conjuntiva proporcional feminina recebe crase.' },
+                    { code: 8, text: 'Em "Entreguei o relatório a ela", deve-se empregar o sinal indicativo de crase antes do pronome "ela".', isCorrect: false, exp: 'FALSA (08): Não ocorre crase antes de pronomes pessoais.' }
+                ]
+            },
+            {
+                id: 'GER-02', group: 'gerais', badge: 'QUÍMICA • PESO 1', axis: 'Físico-Química', type: 'multipla',
+                statement: 'Sobre soluções aquosas, pH e reações químicas, assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'Uma solução aquosa a $25\\,^\\circ\\text{C}$ com $[H^+] = 10^{-3}\\text{ mol/L}$ possui $\\text{pH} = 3$ e caráter ácido.', isCorrect: true, exp: 'CORRETA (01): $\\text{pH} = -\\log(10^{-3}) = 3 < 7$.' },
+                    { code: 2, text: 'Na eletrólise ígnea do $\\text{NaCl}$, ocorre redução dos íons $\\text{Na}^+$ no cátodo.', isCorrect: true, exp: 'CORRETA (02): Cátodo é sempre o polo onde ocorre redução.' },
+                    { code: 4, text: 'Catalisadores aumentam a velocidade da reação diminuindo a energia de ativação, mas não alteram o $\\Delta H$.', isCorrect: true, exp: 'CORRETA (04): Propriedade fundamental dos catalisadores.' },
+                    { code: 8, text: 'Reações exotérmicas possuem variação de entalpia positiva ($\\Delta H > 0$).', isCorrect: false, exp: 'FALSA (08): Reações exotérmicas liberam calor e têm $\\Delta H < 0$.' }
+                ]
+            },
+            {
+                id: 'GER-03', group: 'gerais', badge: 'BIOLOGIA • PESO 1', axis: 'Genética & Ecologia', type: 'multipla',
+                statement: 'Sobre conceitos fundamentais de Biologia exigidos pela UFSC, assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'As mitocôndrias são organelas responsáveis pela respiração celular aeróbica e possuem DNA próprio.', isCorrect: true, exp: 'CORRETA (01): Teoria da endossimbiose e produção de ATP.' },
+                    { code: 2, text: 'No cruzamento entre dois indivíduos heterozigotos ($Aa \\times Aa$), a probabilidade de nascer um descendente homozigoto recessivo ($aa$) é de $25\\%$.', isCorrect: true, exp: 'CORRETA (02): Proporção genotípica $1 AA : 2 Aa : 1 aa$ ($1/4 = 25\\%$).' },
+                    { code: 4, text: 'Na cadeia alimentar, a energia flui de forma cíclica, sendo totalmente reaproveitada pelos produtores.', isCorrect: false, exp: 'FALSA (04): A energia é UNIDIRECIONAL e diminui a cada nível trófico.' },
+                    { code: 8, text: 'A fase S da interfase é marcada pela duplicação semiconservativa do DNA.', isCorrect: true, exp: 'CORRETA (08): Síntese de DNA ocorre na fase S.' }
+                ]
+            },
+            {
+                id: 'GER-04', group: 'gerais', badge: 'HUMANAS • PESO 1', axis: 'História & Geografia SC', type: 'multipla',
+                statement: 'Sobre aspectos históricos e geográficos de Santa Catarina e do Brasil, assinale a(s) proposição(ões) correta(s).',
+                propositions: [
+                    { code: 1, text: 'A Guerra do Contestado (1912–1916) envolveu disputas territoriais entre Paraná e Santa Catarina, além de conflitos agrários e messiânicos.', isCorrect: true, exp: 'CORRETA (01): Fato histórico central do planalto catarinense.' },
+                    { code: 2, text: 'A Universidade Federal de Santa Catarina (UFSC) foi fundada em 1960, tendo seu campus sede instalado no bairro Trindade, em Florianópolis.', isCorrect: true, exp: 'CORRETA (02): Histórico institucional da UFSC.' },
+                    { code: 4, text: 'O clima predominante no estado de Santa Catarina é o Equatorial Úmido, com médias térmicas acima de $30\\,^\\circ\\text{C}$ o ano inteiro.', isCorrect: false, exp: 'FALSA (04): O clima predominante de SC é o Subtropical Úmido (Cfa/Cfb).' },
+                    { code: 8, text: 'A colonização do litoral catarinense no século XVIII contou com forte presença de imigrantes açorianos.', isCorrect: true, exp: 'CORRETA (08): Base cultural da Ilha de Santa Catarina.' }
+                ]
+            }
+        ];
+
+        // ==================================================================
+        // 5. FLASHCARDS & ESTADO PERSISTENTE
+        // ==================================================================
+        const DEFAULT_FLASHCARDS = [
+            { tag: 'MATEMÁTICA • PESO 4', front: 'Como diferenciar a relação pitagórica da Elipse e da Hipérbole?', back: '<strong>Elipse:</strong> $a^2 = b^2 + c^2$ ($e = c/a < 1$).<br><strong>Hipérbole:</strong> $c^2 = a^2 + b^2$ ($e = c/a > 1$).' },
+            { tag: 'FÍSICA • PESO 3', front: 'Qual a condição para Transferência de Máxima Potência de um gerador real?', back: '$R_{\\text{ext}} = r_{\\text{interna}}$, com rendimento elétrico $\\eta = 50\\%$.' },
+            { tag: 'MATEMÁTICA • PESO 4', front: 'Qual o Período e a Imagem de $f(x) = a + b\\operatorname{sen}(cx + d)$?', back: 'Período: $P = \\frac{2\\pi}{|c|}$<br>Imagem: $[a - |b|,\\; a + |b|]$' },
+            { tag: 'FÍSICA • PESO 3', front: 'No Ciclo de Carnot, como calcular o rendimento máximo?', back: '$\\eta = 1 - \\frac{T_f}{T_q}$, usando temperaturas obrigatoriamente em <strong>Kelvin</strong>!' },
+            { tag: 'UFSC • PESOS ENG. PRODUÇÃO', front: 'Quais são os pesos de Matemática, Física, Português e Discursivas?', back: 'Mat: <strong>4</strong> | Fís: <strong>3</strong> | Port: <strong>2</strong> | Disc: <strong>2</strong> | Red: <strong>1,5</strong> | Gerais: <strong>1</strong> (Divisor: 15,5).' },
+            { tag: 'COPERVE • FÓRMULA OFICIAL', front: 'Quando uma questão de somatória da UFSC recebe nota zero?', back: 'Sempre que $N_{ac} \\le N_{ai}$ (acertos menores ou iguais aos erros).' }
+        ];
+
+        const INITIAL_STATE = {
+            resonance: 'fusao',
+            editalChecks: { 'mat-1': [true, true, false, false], 'fis-1': [true, true, false, false] },
+            solvedArena: {},
+            vilaErrors: [],
+            flashcards: DEFAULT_FLASHCARDS,
+            grades: { mat: 6.5, fis: 6.5, port: 6.5, disc: 6.0, red: 7.0, ing: 6.5, quim: 6.0, bio: 6.0, hum: 6.5 },
+            combo: 2,
+            hours: 6.5,
+            cycle: [
+                { day: 'SEG', text: 'Matemática (Peso 4): Funções, Logaritmos & Trigonometria (10 Somatórias)', done: true },
+                { day: 'TER', text: 'Física (Peso 3): Mecânica — Energia e Quantidade de Movimento', done: true },
+                { day: 'QUA', text: 'Matemática (Peso 4): Geometria Espacial & Cônicas (Elipse/Hipérbole)', done: false },
+                { day: 'QUI', text: 'Física (Peso 3): Eletrodinâmica & Termodinâmica (Carnot)', done: false },
+                { day: 'SEX', text: 'Português (Peso 2) + Redação UFSC (Peso 1,5) + 1 Discursiva (Peso 2)', done: false },
+                { day: 'SÁB', text: 'Simulado Cronometrado SpeedForce + Revisão Química/Bio/Humanas', done: false },
+                { day: 'DOM', text: 'Vila do 8: Zerar todas as pendências do Caderno de Erros', done: false }
+            ]
+        };
+
+        let state = loadState();
+        let activeEditalFilter = 'all';
+        let activeModalId = null;
+        let arenaFiltered = [...ARENA_QUESTIONS];
+        let arenaIdx = 0;
+        let fcIdx = 0;
+        let fcFlipped = false;
+
+        // Timer
+        let timerSeconds = 50 * 60;
+        let timerDefault = 50 * 60;
+        let timerInterval = null;
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('kaua_batcaverna_ufsc_2027_v2');
+                if (saved) return { ...INITIAL_STATE, ...JSON.parse(saved) };
+            } catch (e) {}
+            return JSON.parse(JSON.stringify(INITIAL_STATE));
+        }
+
+        function saveState() {
+            try { localStorage.setItem('kaua_batcaverna_ufsc_2027_v2', JSON.stringify(state)); } catch (e) {}
+        }
+
+        // ==================================================================
+        // 6. INICIALIZAÇÃO & NAVEGAÇÃO
+        // ==================================================================
+        window.onload = function () {
+            setResonanceTheme(state.resonance, false);
+            initCorteSliders();
+            updateGlobalDashboard();
+            renderEditalGrid();
+            filterArenaQuestions();
+            renderFlashcard();
+            renderVilaErrors();
+            renderCycleList();
+            lucide.createIcons();
+            renderMathSafe();
+        };
+
+        function renderMathSafe(el = document.body) {
+            if (window.renderMathInElement) {
+                renderMathInElement(el, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        function showToast(msg, type = 'info') {
+            const box = document.getElementById('toast-container');
+            const div = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-500 text-bat-950 border-emerald-300',
+                warning: 'bg-amber-400 text-bat-950 border-amber-200',
+                error: 'bg-rose-500 text-white border-rose-300',
+                info: 'bg-sky-500 text-bat-950 border-sky-300'
+            };
+            div.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-2xl text-xs font-extrabold transition-all ${colors[type] || colors.info}`;
+            div.textContent = msg;
+            box.appendChild(div);
+            setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 300); }, 3200);
+        }
+
+        function switchModule(modId) {
+            document.querySelectorAll('.module-view').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`mod-${modId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.className = 'nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-medium text-slate-400 hover:bg-bat-800/80 transition whitespace-nowrap';
+            });
+            document.getElementById(`nav-${modId}`).className = 'nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs lg:text-sm font-bold transition whitespace-nowrap bg-sky-500/15 text-sky-400 border border-sky-500/35';
+
+            updateGlobalDashboard();
+            lucide.createIcons();
+            renderMathSafe();
+        }
+
+        function setResonanceTheme(key, notify = true) {
+            state.resonance = key;
+            saveState();
+            const info = RESONANCE_DATA[key] || RESONANCE_DATA.fusao;
+            document.getElementById('resonance-icon-box').textContent = info.icon;
+            document.getElementById('resonance-badge').textContent = info.badge;
+            document.getElementById('resonance-quote').textContent = info.quote;
+
+            ['fusao', 'batman', 'flash', 'neymar', 'chaves'].forEach(k => {
+                const btn = document.getElementById(`res-btn-${k}`);
+                btn.className = k === key
+                    ? 'px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-400 text-bat-950 transition shadow-md'
+                    : 'px-3 py-1.5 rounded-xl text-xs font-bold bg-bat-800 text-slate-300 hover:text-sky-400 transition';
+            });
+            if (notify) showToast(`Ressonância ativada: ${info.icon} ${key.toUpperCase()}`, 'info');
+        }
+
+        // ==================================================================
+        // 7. CÁLCULO DA MÉDIA PONDERADA EXATA (DIVISOR 15.5) & DASHBOARD
+        // ==================================================================
+        function calculateExactWeightedScore() {
+            let weightedSum = 0;
+            let weightTotal = 0;
+            UFSC_WEIGHTS_CONFIG.forEach(item => {
+                const g = state.grades[item.id] ?? item.defaultVal;
+                weightedSum += g * item.weight;
+                weightTotal += item.weight; // 15.5
+            });
+            // Média ponderada na escala 0 a 10 multiplicada por 10 -> escala 0 a 100
+            return (weightedSum / weightTotal) * 10;
+        }
+
+        function updateGlobalDashboard() {
+            const finalScore = calculateExactWeightedScore();
+            const diff = finalScore - CUTOFF_ENG_PROD;
+
+            // Sidebar
+            document.getElementById('sidebar-score').textContent = finalScore.toFixed(2);
+            const pill = document.getElementById('sidebar-pill');
+            if (diff >= 0) {
+                pill.textContent = `+${diff.toFixed(2)} ACIMA`;
+                pill.className = 'text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400';
+            } else {
+                pill.textContent = `${diff.toFixed(2)} CORTE`;
+                pill.className = 'text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400';
+            }
+            document.getElementById('sidebar-progress-bar').style.width = `${Math.min(100, (finalScore / 80) * 100)}%`;
+
+            // KPIs Central
+            document.getElementById('kpi-weighted-score').textContent = finalScore.toFixed(2);
+            const mBadge = document.getElementById('kpi-margin-badge');
+            mBadge.textContent = diff >= 0 ? `+${diff.toFixed(2)} pts de folga` : `Faltam ${Math.abs(diff).toFixed(2)} pts`;
+            mBadge.className = diff >= 0 ? 'text-xs font-mono font-bold text-emerald-400' : 'text-xs font-mono font-bold text-rose-400';
+
+            // Aproveitamento Mat & Fis na Arena
+            const matQs = ARENA_QUESTIONS.filter(q => q.group === 'matematica');
+            const fisQs = ARENA_QUESTIONS.filter(q => q.group === 'fisica');
+            const matDone = matQs.filter(q => state.solvedArena[q.id] !== undefined);
+            const fisDone = fisQs.filter(q => state.solvedArena[q.id] !== undefined);
+
+            const matPct = matDone.length ? (matDone.reduce((s, q) => s + state.solvedArena[q.id].score, 0) / matDone.length) * 100 : 0;
+            const fisPct = fisDone.length ? (fisDone.reduce((s, q) => s + state.solvedArena[q.id].score, 0) / fisDone.length) * 100 : 0;
+
+            document.getElementById('kpi-mat-pct').textContent = `${matPct.toFixed(1)}%`;
+            document.getElementById('kpi-mat-qs').textContent = `${matDone.length}/${matQs.length} Qs`;
+            document.getElementById('kpi-mat-bar').style.width = `${matPct}%`;
+
+            document.getElementById('kpi-fis-pct').textContent = `${fisPct.toFixed(1)}%`;
+            document.getElementById('kpi-fis-qs').textContent = `${fisDone.length}/${fisQs.length} Qs`;
+            document.getElementById('kpi-fis-bar').style.width = `${fisPct}%`;
+
+            document.getElementById('kpi-combo').textContent = `${state.combo}x`;
+            document.getElementById('kpi-hours').textContent = `• ${state.hours.toFixed(1)}h líquidas`;
+
+            // Badges Edital & Erros
+            let mastered = 0;
+            EDITAL_DATA.forEach(t => {
+                const arr = state.editalChecks[t.id] || [];
+                if (arr.filter(Boolean).length === 4) mastered++;
+            });
+            document.getElementById('badge-edital-count').textContent = `${mastered}/${EDITAL_DATA.length}`;
+            document.getElementById('badge-errors-count').textContent = state.vilaErrors.filter(e => !e.resolved).length;
+
+            // Atualizar Card Colecionável do Kauã (Raridade)
+            updateKauaCard(finalScore);
+
+            // Renderizar Radar SVG & ROI
+            renderCustomRadarSVG();
+            renderROIPriorityList();
+        }
+
+        function updateKauaCard(score) {
+            const ovr = Math.min(99, Math.max(60, Math.round(score + 18)));
+            document.getElementById('card-ovr-num').textContent = ovr;
+
+            let rarity = 'BRONZE';
+            let badgeCls = 'px-2.5 py-1 rounded-lg text-[10px] font-hud font-black uppercase bg-amber-700/20 text-amber-500 border border-amber-600/40';
+            if (score >= 68.0) {
+                rarity = 'DIAMANTE K10';
+                badgeCls = 'px-2.5 py-1 rounded-lg text-[10px] font-hud font-black uppercase bg-sky-500/20 text-sky-400 border border-sky-400/50';
+            } else if (score >= CUTOFF_ENG_PROD) {
+                rarity = 'OURO (APROVADO)';
+                badgeCls = 'px-2.5 py-1 rounded-lg text-[10px] font-hud font-black uppercase bg-amber-500/20 text-amber-400 border border-amber-400/50';
+            } else if (score >= 52.0) {
+                rarity = 'PRATA';
+                badgeCls = 'px-2.5 py-1 rounded-lg text-[10px] font-hud font-black uppercase bg-slate-500/20 text-slate-300 border border-slate-400/40';
+            }
+
+            const rEl = document.getElementById('card-rarity-label');
+            rEl.textContent = `RARIDADE ${rarity}`;
+            rEl.className = badgeCls;
+            document.getElementById('badge-card-rarity').textContent = rarity.split(' ')[0];
+
+            document.getElementById('attr-mat').textContent = `MAT ${Math.round(state.grades.mat * 10)}`;
+            document.getElementById('attr-fis').textContent = `FÍS ${Math.round(state.grades.fis * 10)}`;
+        }
+
+        function renderCustomRadarSVG() {
+            const values = [
+                (state.grades.mat / 10) * 100,
+                (state.grades.fis / 10) * 100,
+                (state.grades.port / 10) * 100,
+                (state.grades.disc / 10) * 100,
+                (state.grades.red / 10) * 100,
+                (((state.grades.quim + state.grades.bio + state.grades.hum + state.grades.ing) / 4) / 10) * 100
+            ];
+            const labels = ['MAT (P4)', 'FÍS (P3)', 'PORT (P2)', 'DISC (P2)', 'RED (1.5)', 'GERAIS (1)'];
+            const cx = 170, cy = 135, rMax = 88;
+            let pts = [];
+
+            values.forEach((v, i) => {
+                const angle = (Math.PI / 3) * i - Math.PI / 2;
+                const r = (v / 100) * rMax;
+                pts.push(`${(cx + r * Math.cos(angle)).toFixed(1)},${(cy + r * Math.sin(angle)).toFixed(1)}`);
+            });
+
+            let hexRings = [0.33, 0.66, 1].map(scale => {
+                const ringPts = [0, 1, 2, 3, 4, 5].map(i => {
+                    const ang = (Math.PI / 3) * i - Math.PI / 2;
+                    return `${(cx + rMax * scale * Math.cos(ang)).toFixed(1)},${(cy + rMax * scale * Math.sin(ang)).toFixed(1)}`;
+                }).join(' ');
+                return `<polygon points="${ringPts}" fill="none" stroke="#1e293b" stroke-width="1"/>`;
+            }).join('');
+
+            let labelEls = labels.map((lbl, i) => {
+                const ang = (Math.PI / 3) * i - Math.PI / 2;
+                const lx = cx + (rMax + 26) * Math.cos(ang);
+                const ly = cy + (rMax + 18) * Math.sin(ang);
+                return `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono" font-size="10" font-weight="700">${lbl}</text>`;
+            }).join('');
+
+            document.getElementById('custom-radar-container').innerHTML = `
+                <svg viewBox="0 0 340 270" class="w-full max-w-[340px] h-auto">
+                    ${hexRings}
+                    <polygon points="${pts.join(' ')}" fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" stroke-width="2.5"/>
+                    ${labelEls}
+                </svg>
+            `;
+        }
+
+        function renderROIPriorityList() {
+            const ranked = UFSC_WEIGHTS_CONFIG.map(item => {
+                const current = state.grades[item.id] ?? item.defaultVal;
+                const roomToGrow = 10 - current;
+                // Potencial de ganho ponderado = espaço para crescer * peso
+                const roiScore = roomToGrow * item.weight;
+                return { ...item, current, roiScore };
+            }).sort((a, b) => b.roiScore - a.roiScore).slice(0, 4);
+
+            document.getElementById('roi-priority-list').innerHTML = ranked.map((r, idx) => `
+                <div class="p-3.5 rounded-xl bg-bat-950 border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-hud font-black text-amber-400">#${idx + 1}</span>
+                            <span class="text-xs sm:text-sm font-bold text-white">${r.name}</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/15 text-sky-400 font-bold">${r.badge}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Nota simulada atual: <strong>${r.current.toFixed(2)}</strong> • Potencial de alavancagem: <strong>+${((r.roiScore / 15.5) * 10).toFixed(2)} pts</strong> na média final</p>
+                    </div>
+                    <button onclick="switchModule('edital')" class="px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-400 text-xs font-bold shrink-0">
+                        Estudar
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // ==================================================================
+        // 8. EDITAL UFSC 2027 & MODAL DE AULA
+        // ==================================================================
+        function setEditalFilter(group) {
+            activeEditalFilter = group;
+            ['all', 'matematica', 'fisica', 'gerais'].forEach(g => {
+                const btn = document.getElementById(`edf-${g}`);
+                btn.className = g === group
+                    ? 'px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500 text-bat-950'
+                    : 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-sky-400';
+            });
+            renderEditalGrid();
+        }
+
+        function renderEditalGrid() {
+            const list = activeEditalFilter === 'all'
+                ? EDITAL_DATA
+                : EDITAL_DATA.filter(t => t.group === activeEditalFilter);
+
+            const grid = document.getElementById('edital-grid');
+            grid.innerHTML = list.map(t => {
+                const checks = state.editalChecks[t.id] || [false, false, false, false];
+                const pct = (checks.filter(Boolean).length / 4) * 100;
+                return `
+                    <div onclick="openEditalModal('${t.id}')" class="p-5 rounded-2xl bg-bat-900 hud-border hover:border-amber-400/60 transition cursor-pointer flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="text-[10px] font-mono font-bold text-sky-400">${t.tag}</span>
+                                <span class="text-xs font-mono font-black ${pct === 100 ? 'text-emerald-400' : 'text-amber-400'}">${pct}%</span>
+                            </div>
+                            <h3 class="text-sm sm:text-base font-extrabold text-white leading-snug">${t.title}</h3>
+                            <p class="text-xs text-slate-400 mt-1.5 line-clamp-2">${t.summary}</p>
+                        </div>
+                        <div class="w-full h-1.5 bg-bat-950 rounded-full overflow-hidden">
+                            <div class="h-full ${pct === 100 ? 'bg-emerald-400' : 'bg-sky-400'}" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openEditalModal(id) {
+            const item = EDITAL_DATA.find(t => t.id === id);
+            if (!item) return;
+            activeModalId = id;
+            document.getElementById('em-tag').textContent = item.tag;
+            document.getElementById('em-title').textContent = item.title;
+            document.getElementById('em-summary').innerHTML = `<p>${item.summary}</p>`;
+            document.getElementById('em-formulas').innerHTML = item.formulas.map(f => `<div class="p-2 rounded bg-bat-900 text-center">${f}</div>`).join('');
+            document.getElementById('em-trap').textContent = item.trap;
+
+            renderModalChecks();
+            const modal = document.getElementById('edital-modal');
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+            renderMathSafe(modal);
+        }
+
+        function renderModalChecks() {
+            const labels = ['1. Teoria Batcaverna Lida', '2. Exercícios Base Resolvidos', '3. Somatórias Coperve Treinadas', '4. Revisão Vila do 8 Concluída'];
+            const arr = state.editalChecks[activeModalId] || [false, false, false, false];
+            document.getElementById('em-checks').innerHTML = labels.map((lbl, idx) => `
+                <button onclick="toggleEditalStep(${idx})" class="p-3 rounded-xl border text-left text-xs font-bold transition ${
+                    arr[idx] ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300' : 'bg-bat-950 border-slate-800 text-slate-400'
+                }">
+                    ${arr[idx] ? '✓ ' : '○ '}${lbl}
+                </button>
+            `).join('');
+        }
+
+        function toggleEditalStep(idx) {
+            if (!state.editalChecks[activeModalId]) state.editalChecks[activeModalId] = [false, false, false, false];
+            state.editalChecks[activeModalId][idx] = !state.editalChecks[activeModalId][idx];
+            saveState();
+            renderModalChecks();
+            renderEditalGrid();
+            updateGlobalDashboard();
+        }
+
+        function closeEditalModal() {
+            document.getElementById('edital-modal').classList.add('hidden');
+        }
+
+        // ==================================================================
+        // 9. ARENA COPERVE (SOMATÓRIA OFICIAL & QUESTÕES ABERTAS)
+        // ==================================================================
+        function filterArenaQuestions() {
+            const val = document.getElementById('arena-filter').value;
+            arenaFiltered = val === 'all' ? [...ARENA_QUESTIONS] : ARENA_QUESTIONS.filter(q => q.group === val);
+            arenaIdx = 0;
+            renderArenaPills();
+            renderArenaQuestion();
+        }
+
+        function renderArenaPills() {
+            document.getElementById('arena-pills').innerHTML = arenaFiltered.map((q, i) => {
+                const solved = state.solvedArena[q.id];
+                const active = i === arenaIdx;
+                let cls = 'px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition ';
+                if (active) cls += 'bg-sky-400 text-bat-950 border-sky-400';
+                else if (solved) cls += solved.score === 1 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+                else cls += 'bg-bat-900 text-slate-400 border-slate-800';
+                return `<button onclick="goArenaQ(${i})" class="${cls}">${q.id}</button>`;
+            }).join('');
+        }
+
+        function goArenaQ(i) {
+            arenaIdx = i;
+            renderArenaPills();
+            renderArenaQuestion();
+        }
+
+        function prevArenaQ() { goArenaQ((arenaIdx - 1 + arenaFiltered.length) % arenaFiltered.length); }
+        function nextArenaQ() { goArenaQ((arenaIdx + 1) % arenaFiltered.length); }
+
+        function renderArenaQuestion() {
+            const q = arenaFiltered[arenaIdx];
+            if (!q) return;
+
+            document.getElementById('aq-subj').textContent = q.badge;
+            document.getElementById('aq-axis').textContent = q.axis;
+            document.getElementById('aq-type').textContent = q.type === 'multipla' ? 'PROPOSIÇÕES MÚLTIPLAS' : 'QUESTÃO ABERTA (00-99)';
+            document.getElementById('aq-id').textContent = q.id;
+            document.getElementById('aq-statement').innerHTML = `<p>${q.statement}</p>`;
+
+            const inp = document.getElementById('aq-input');
+            inp.value = 0;
+            inp.disabled = false;
+            document.getElementById('aq-result-box').classList.add('hidden');
+            const btn = document.getElementById('aq-submit-btn');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+
+            const body = document.getElementById('aq-body');
+            if (q.type === 'multipla') {
+                document.getElementById('aq-input-label').textContent = 'Soma Assinalada';
+                body.innerHTML = q.propositions.map(p => {
+                    const codeStr = p.code < 10 ? `0${p.code}` : `${p.code}`;
+                    return `
+                        <label id="aprop-${p.code}" class="block p-4 rounded-xl bg-bat-950 border border-slate-800 hover:border-sky-400/50 transition cursor-pointer">
+                            <div class="flex items-start gap-3">
+                                <input type="checkbox" value="${p.code}" onchange="syncArenaCheckboxes()" class="arena-cb mt-1 w-4 h-4 accent-sky-400" />
+                                <span class="font-mono font-black text-xs px-2 py-0.5 rounded bg-bat-800 text-amber-400 shrink-0">${codeStr}</span>
+                                <div class="flex-1 text-sm text-slate-200">
+                                    ${p.text}
+                                    <div id="aexp-${p.code}" class="hidden mt-2.5 p-2.5 rounded-lg text-xs border"></div>
+                                </div>
+                            </div>
+                        </label>
+                    `;
+                }).join('');
+            } else {
+                document.getElementById('aq-input-label').textContent = 'Resposta Numérica (00 a 99)';
+                body.innerHTML = `
+                    <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-400/30 text-xs text-slate-300">
+                        <strong>Questão Aberta UFSC:</strong> Digite o resultado inteiro ($00$ a $99$) no Cartão-Resposta ao lado.
+                    </div>
+                    <div id="aopen-exp" class="hidden p-4 rounded-xl bg-emerald-500/10 border border-emerald-400/30 text-xs sm:text-sm text-slate-200"></div>
+                `;
+            }
+
+            renderMathSafe(document.getElementById('mod-arena'));
+        }
+
+        function syncArenaCheckboxes() {
+            let sum = 0;
+            document.querySelectorAll('.arena-cb:checked').forEach(cb => sum += parseInt(cb.value, 10));
+            document.getElementById('aq-input').value = sum;
+        }
+
+        function onArenaManualInput() {
+            const q = arenaFiltered[arenaIdx];
+            if (!q || q.type !== 'multipla') return;
+            let val = Math.max(0, Math.min(99, parseInt(document.getElementById('aq-input').value, 10) || 0));
+            document.querySelectorAll('.arena-cb').forEach(cb => {
+                const c = parseInt(cb.value, 10);
+                cb.checked = (val & c) === c;
+            });
+        }
+
+        function evaluateArenaQuestion() {
+            const q = arenaFiltered[arenaIdx];
+            if (!q) return;
+            const userVal = parseInt(document.getElementById('aq-input').value, 10) || 0;
+            let officialVal = 0;
+            let score = 0;
+            let riskMsg = '';
+            let formulaMsg = '';
+
+            if (q.type === 'multipla') {
+                const Np = q.propositions.length;
+                let Nc = 0, Nac = 0, Nai = 0;
+
+                q.propositions.forEach(p => {
+                    const marked = (userVal & p.code) === p.code;
+                    if (p.isCorrect) {
+                        officialVal += p.code;
+                        Nc++;
+                        if (marked) Nac++;
+                    } else if (marked) {
+                        Nai++;
+                    }
+                    const card = document.getElementById(`aprop-${p.code}`);
+                    const exp = document.getElementById(`aexp-${p.code}`);
+                    exp.classList.remove('hidden');
+                    if (p.isCorrect) {
+                        card.classList.add('border-emerald-400/60');
+                        exp.className = 'mt-2.5 p-2.5 rounded-lg text-xs border bg-emerald-500/10 border-emerald-400/30 text-emerald-300';
+                    } else {
+                        if (marked) card.classList.add('border-rose-500');
+                        exp.className = 'mt-2.5 p-2.5 rounded-lg text-xs border bg-rose-500/10 border-rose-500/30 text-rose-300';
+                    }
+                    exp.innerHTML = p.exp;
+                });
+
+                if (Nac > Nai) score = (Np - (Nc - Nac) - Nai) / Np;
+                else score = 0;
+
+                formulaMsg = `Np=${Np}, Nc=${Nc}, Nac=${Nac}, Nai=${Nai} → Nota = ${score.toFixed(2)}`;
+                riskMsg = score === 1
+                    ? '⚽ GOLAÇO CAMISA 10! Gabarito perfeito (1.00) sem nenhum erro!'
+                    : Nai > 0
+                        ? `🛢️ "Foi sem querer querendo!" Você marcou ${Nai} item(ns) falso(s) e perdeu pontos pela fórmula da Coperve.`
+                        : `🦇 Boa defesa WayneTech! Você garantiu ${score.toFixed(2)} ponto parcial sem arriscar chute.`;
+            } else {
+                officialVal = q.openAnswer;
+                score = userVal === officialVal ? 1.0 : 0.0;
+                formulaMsg = `Aberta: Gabarito ${officialVal} | Sua resposta ${userVal}`;
+                riskMsg = score === 1 ? '⚡ VELOCIDADE FLASH! Resposta exata na questão aberta (1.00)!' : `🛢️ Quase lá! O valor exato era ${officialVal}. Confira a resolução abaixo.`;
+                const openExp = document.getElementById('aopen-exp');
+                openExp.classList.remove('hidden');
+                openExp.innerHTML = `<strong>Resolução:</strong> ${q.openExplanation}`;
+            }
+
+            state.solvedArena[q.id] = { score: Number(score.toFixed(2)), userVal, officialVal };
+            if (score >= 0.75) state.combo++;
+            else state.combo = 0;
+
+            if (score < 1.0 && !state.vilaErrors.some(e => e.id === q.id)) {
+                state.vilaErrors.unshift({ id: q.id, tag: 'Conta do Seu Madruga (Cálculo / Pegadinha)', resolved: false });
+            }
+
+            saveState();
+            updateGlobalDashboard();
+            renderArenaPills();
+            renderVilaErrors();
+
+            document.getElementById('aq-res-gab').textContent = officialVal < 10 ? `0${officialVal}` : `${officialVal}`;
+            document.getElementById('aq-res-score').textContent = score.toFixed(2);
+            document.getElementById('aq-risk-msg').textContent = riskMsg;
+            document.getElementById('aq-formula-msg').textContent = formulaMsg;
+            document.getElementById('aq-result-box').classList.remove('hidden');
+
+            document.querySelectorAll('.arena-cb').forEach(cb => cb.disabled = true);
+            document.getElementById('aq-input').disabled = true;
+            const btn = document.getElementById('aq-submit-btn');
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+
+            renderMathSafe(document.getElementById('mod-arena'));
+            showToast(`Pontuação Coperve: ${score.toFixed(2)}`, score >= 0.7 ? 'success' : 'warning');
+        }
+
+        // ==================================================================
+        // 10. SIMULADOR OFICIAL DE NOTA FINAL (CORTE 59.67 & PESOS EXATOS)
+        // ==================================================================
+        function initCorteSliders() {
+            const grid = document.getElementById('corte-sliders-grid');
+            grid.innerHTML = UFSC_WEIGHTS_CONFIG.map(item => {
+                const val = state.grades[item.id] ?? item.defaultVal;
+                return `
+                    <div class="p-4 rounded-xl bg-bat-950 border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-white">${item.name}</span>
+                            <span class="font-mono font-black ${item.color}">${item.badge}</span>
+                        </div>
+                        <div class="flex items-center justify-between font-mono text-xs">
+                            <span class="text-slate-400">Nota (0 a 10): <strong id="lbl-grade-${item.id}" class="text-white">${val.toFixed(2)}</strong></span>
+                            <span class="text-amber-400">Pond: <strong id="lbl-pond-${item.id}">${(val * item.weight).toFixed(2)}</strong></span>
+                        </div>
+                        <input type="range" min="0" max="10" step="0.25" value="${val}" oninput="onGradeSlider('${item.id}', this.value)" class="w-full" />
+                    </div>
+                `;
+            }).join('');
+
+            refreshCorteVerdict();
+        }
+
+        function onGradeSlider(id, val) {
+            const num = parseFloat(val);
+            state.grades[id] = num;
+            const cfg = UFSC_WEIGHTS_CONFIG.find(i => i.id === id);
+            document.getElementById(`lbl-grade-${id}`).textContent = num.toFixed(2);
+            document.getElementById(`lbl-pond-${id}`).textContent = (num * cfg.weight).toFixed(2);
+            saveState();
+            refreshCorteVerdict();
+            updateGlobalDashboard();
+        }
+
+        function refreshCorteVerdict() {
+            const finalScore = calculateExactWeightedScore();
+            const diff = finalScore - CUTOFF_ENG_PROD;
+            document.getElementById('corte-big-score').textContent = finalScore.toFixed(2);
+
+            const badge = document.getElementById('corte-status-badge');
+            const detail = document.getElementById('corte-margin-detail');
+
+            if (diff >= 0) {
+                badge.textContent = 'APROVADO EM ENG. PRODUÇÃO! 🎉';
+                badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-hud font-black uppercase bg-emerald-500/20 text-emerald-400';
+                detail.textContent = `Você está +${diff.toFixed(2)} pontos ACIMA do corte de 59.67!`;
+            } else {
+                badge.textContent = 'ABAIXO DO CORTE (59.67)';
+                badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-hud font-black uppercase bg-rose-500/20 text-rose-400';
+                detail.textContent = `Faltam ${Math.abs(diff).toFixed(2)} pontos para atingir 59.67.`;
+            }
+        }
+
+        function importRealArenaScores() {
+            const matDone = ARENA_QUESTIONS.filter(q => q.group === 'matematica' && state.solvedArena[q.id]);
+            const fisDone = ARENA_QUESTIONS.filter(q => q.group === 'fisica' && state.solvedArena[q.id]);
+            if (!matDone.length && !fisDone.length) {
+                showToast('Resolva questões na Arena Coperve primeiro!', 'warning');
+                return;
+            }
+            if (matDone.length) {
+                state.grades.mat = Number(((matDone.reduce((s, q) => s + state.solvedArena[q.id].score, 0) / matDone.length) * 10).toFixed(2));
+            }
+            if (fisDone.length) {
+                state.grades.fis = Number(((fisDone.reduce((s, q) => s + state.solvedArena[q.id].score, 0) / fisDone.length) * 10).toFixed(2));
+            }
+            saveState();
+            initCorteSliders();
+            updateGlobalDashboard();
+            showToast('Desempenho real de Matemática (Peso 4) e Física (Peso 3) importado!', 'success');
+        }
+
+        // ==================================================================
+        // 11. VILA DO 8 (FLASHCARDS & ERROS) + CRONÔMETRO
+        // ==================================================================
+        function renderFlashcard() {
+            const card = state.flashcards[fcIdx % state.flashcards.length];
+            fcFlipped = false;
+            document.getElementById('fc-inner').classList.remove('rotate-y-180');
+            document.getElementById('fc-counter').textContent = `${(fcIdx % state.flashcards.length) + 1} / ${state.flashcards.length}`;
+            document.getElementById('fc-tag').textContent = card.tag;
+            document.getElementById('fc-front').innerHTML = card.front;
+            document.getElementById('fc-back').innerHTML = card.back;
+            renderMathSafe(document.getElementById('mod-vila'));
+        }
+
+        function flipFlashcard() {
+            fcFlipped = !fcFlipped;
+            const inner = document.getElementById('fc-inner');
+            if (fcFlipped) inner.classList.add('rotate-y-180');
+            else inner.classList.remove('rotate-y-180');
+        }
+
+        function nextFlashcard() {
+            fcIdx = (fcIdx + 1) % state.flashcards.length;
+            renderFlashcard();
+        }
+
+        function renderVilaErrors() {
+            const box = document.getElementById('vila-error-list');
+            if (!state.vilaErrors.length) {
+                box.innerHTML = `<div class="p-6 rounded-xl bg-bat-950 border border-dashed border-slate-800 text-center text-xs text-slate-400">Nenhum erro na Vila do 8! Continue invicto como o Camisa 10.</div>`;
+                return;
+            }
+            box.innerHTML = state.vilaErrors.map((err, i) => `
+                <div class="p-4 rounded-xl bg-bat-950 border ${err.resolved ? 'border-emerald-500/30 opacity-60' : 'border-rose-500/30'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <span class="text-xs font-mono font-bold text-rose-400">${err.id}</span>
+                        <select onchange="changeVilaTag(${i}, this.value)" class="ml-2 px-2 py-1 rounded bg-bat-900 border border-slate-800 text-[11px] text-slate-200">
+                            <option ${err.tag.includes('Madruga') ? 'selected' : ''}>Conta do Seu Madruga (Cálculo / Pegadinha)</option>
+                            <option ${err.tag.includes('sem querer') ? 'selected' : ''}>Foi sem querer querendo (Falta de Atenção)</option>
+                            <option ${err.tag.includes('Bruxa') ? 'selected' : ''}>Bruxa do 71 (Lacuna Teórica)</option>
+                        </select>
+                    </div>
+                    <button onclick="toggleVilaResolved(${i})" class="px-3 py-1.5 rounded-lg text-xs font-bold ${err.resolved ? 'bg-emerald-500 text-bat-950' : 'bg-bat-800 text-slate-300'}">
+                        ${err.resolved ? 'Superado ✓' : 'Marcar Superado'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function changeVilaTag(i, val) { state.vilaErrors[i].tag = val; saveState(); }
+        function toggleVilaResolved(i) { state.vilaErrors[i].resolved = !state.vilaErrors[i].resolved; saveState(); renderVilaErrors(); updateGlobalDashboard(); }
+
+        // Cronômetro & Ciclo
+        function setTimerMode(mins, label) {
+            pauseTimer();
+            timerDefault = mins * 60;
+            timerSeconds = timerDefault;
+            document.getElementById('timer-label').textContent = label;
+            updateClock();
+        }
+        function updateClock() {
+            const h = Math.floor(timerSeconds / 3600);
+            const m = Math.floor((timerSeconds % 3600) / 60);
+            const s = timerSeconds % 60;
+            document.getElementById('timer-clock').textContent = h > 0
+                ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+                : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+        function startTimer() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) { timerSeconds--; updateClock(); }
+                else {
+                    pauseTimer();
+                    state.hours = Number((state.hours + timerDefault / 3600).toFixed(1));
+                    saveState();
+                    updateGlobalDashboard();
+                    showToast('Sessão SpeedForce concluída e somada às horas líquidas!', 'success');
+                }
+            }, 1000);
+        }
+        function pauseTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+        function resetTimer() { pauseTimer(); timerSeconds = timerDefault; updateClock(); }
+
+        function renderCycleList() {
+            document.getElementById('cycle-list').innerHTML = state.cycle.map((c, i) => `
+                <div onclick="toggleCycle(${i})" class="p-3.5 rounded-xl bg-bat-950 border border-slate-800 hover:border-sky-400/50 cursor-pointer flex items-center gap-3 ${c.done ? 'opacity-55 line-through' : ''}">
+                    <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 font-mono text-xs font-bold">${c.day}</span>
+                    <span class="text-xs text-slate-200 font-medium">${c.text}</span>
+                </div>
+            `).join('');
+        }
+        function toggleCycle(i) { state.cycle[i].done = !state.cycle[i].done; saveState(); renderCycleList(); }
+
+        // Backup JSON & Reset
+        function exportProgressJSON() {
+            const href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+            const a = document.createElement('a');
+            a.href = href;
+            a.download = `kaua_batcaverna_ufsc2027_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('Backup JSON exportado!', 'success');
+        }
+        function handleImportJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const r = new FileReader();
+            r.onload = ev => {
+                try { state = { ...INITIAL_STATE, ...JSON.parse(ev.target.result) }; saveState(); location.reload(); }
+                catch (err) { showToast('Arquivo inválido.', 'error'); }
+            };
+            r.readAsText(file);
+        }
+        function openResetModal() { document.getElementById('reset-modal').classList.remove('hidden'); }
+        function closeResetModal() { document.getElementById('reset-modal').classList.add('hidden'); }
+        function confirmFullReset() { localStorage.removeItem('kaua_batcaverna_ufsc_2027_v2'); location.reload(); }
+    </script>
+</body>
+</html>
